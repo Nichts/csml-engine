@@ -489,6 +489,7 @@ pub enum EngineError {
     Time(std::time::SystemTimeError),
     Openssl(openssl::error::ErrorStack),
     Base64(base64::DecodeError),
+    UUID(uuid::Error),
 
     #[cfg(any(feature = "mongo"))]
     BsonDecoder(bson::de::Error),
@@ -508,6 +509,12 @@ pub enum EngineError {
     SqlErrorCode(String),
     #[cfg(any(feature = "postgresql", feature = "sqlite"))]
     SqlMigrationsError(String),
+}
+
+impl From<uuid::Error> for EngineError {
+    fn from(value: uuid::Error) -> Self {
+        Self::UUID(value)
+    }
 }
 
 impl From<serde_json::Error> for EngineError {

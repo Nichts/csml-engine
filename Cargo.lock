@@ -1356,8 +1356,9 @@ dependencies = [
 
 [[package]]
 name = "diesel"
-version = "2.0.2"
-source = "git+https://github.com/diesel-rs/diesel?branch=master#88129db2fbed49d3ecd41bafff2a5932f1621c2c"
+version = "2.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4391a22b19c916e50bec4d6140f29bdda3e3bb187223fe6e3ea0b6e4d1021c04"
 dependencies = [
  "bitflags",
  "byteorder",
@@ -1367,13 +1368,14 @@ dependencies = [
  "libsqlite3-sys",
  "pq-sys",
  "r2d2",
- "uuid 0.8.2",
+ "uuid 1.2.2",
 ]
 
 [[package]]
 name = "diesel_derives"
 version = "2.0.1"
-source = "git+https://github.com/diesel-rs/diesel?branch=master#88129db2fbed49d3ecd41bafff2a5932f1621c2c"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "143b758c91dbc3fe1fdcb0dba5bd13276c6a66422f2ef5795b58488248a310aa"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -1384,7 +1386,8 @@ dependencies = [
 [[package]]
 name = "diesel_migrations"
 version = "2.0.0"
-source = "git+https://github.com/diesel-rs/diesel?branch=master#88129db2fbed49d3ecd41bafff2a5932f1621c2c"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9ae22beef5e9d6fab9225ddb073c1c6c1a7a6ded5019d5da11d1e5c5adc34e2"
 dependencies = [
  "diesel",
  "migrations_internals",
@@ -2366,7 +2369,8 @@ dependencies = [
 [[package]]
 name = "migrations_internals"
 version = "2.0.0"
-source = "git+https://github.com/diesel-rs/diesel?branch=master#88129db2fbed49d3ecd41bafff2a5932f1621c2c"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c493c09323068c01e54c685f7da41a9ccf9219735c3766fbfd6099806ea08fbc"
 dependencies = [
  "serde",
  "toml",
@@ -2375,7 +2379,8 @@ dependencies = [
 [[package]]
 name = "migrations_macros"
 version = "2.0.0"
-source = "git+https://github.com/diesel-rs/diesel?branch=master#88129db2fbed49d3ecd41bafff2a5932f1621c2c"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a8ff27a350511de30cdabb77147501c36ef02e0451d957abea2f30caffb2b58"
 dependencies = [
  "migrations_internals",
  "proc-macro2",
