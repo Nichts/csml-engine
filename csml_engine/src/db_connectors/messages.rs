@@ -99,6 +99,7 @@ pub fn get_client_messages(
     pagination_key: Option<String>,
     from_date: Option<i64>,
     to_date: Option<i64>,
+    conversation_id: Option<String>,
 ) -> Result<serde_json::Value, EngineError> {
     csml_logger(
         CsmlLog::new(None, None, None, "db call get messages".to_string()),
@@ -161,6 +162,7 @@ pub fn get_client_messages(
             pagination_key,
             from_date,
             to_date,
+            conversation_id,
         );
     }
 
@@ -175,6 +177,7 @@ pub fn get_client_messages(
             pagination_key,
             from_date,
             to_date,
+            conversation_id,
         );
     }
 

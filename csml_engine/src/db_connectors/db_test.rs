@@ -123,7 +123,7 @@ mod tests {
         messages::add_messages_bulk(&mut data, msgs, 0, "SEND").unwrap();
 
         let response =
-            messages::get_client_messages(&client, &mut data.db, Some(1), None, None, None)
+            messages::get_client_messages(&client, &mut data.db, Some(1), None, None, None, None)
                 .unwrap();
 
         let received_msgs: Vec<serde_json::Value> =
@@ -141,7 +141,7 @@ mod tests {
         user::delete_client(&client, &mut data.db).unwrap();
 
         let response =
-            messages::get_client_messages(&client, &mut data.db, Some(2), None, None, None)
+            messages::get_client_messages(&client, &mut data.db, Some(2), None, None, None, None)
                 .unwrap();
 
         let received_msgs: Vec<serde_json::Value> =

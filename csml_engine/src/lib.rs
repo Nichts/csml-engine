@@ -214,6 +214,7 @@ pub fn get_client_memory(client: &Client, key: &str) -> Result<serde_json::Value
     memories::get_memory(client, key, &mut db)
 }
 
+#[deprecated]
 pub fn get_client_messages(
     client: &Client,
     limit: Option<i64>,
@@ -222,9 +223,23 @@ pub fn get_client_messages(
     to_date: Option<i64>,
 ) -> Result<serde_json::Value, EngineError> {
     let mut db = init_db()?;
-    init_logger();
 
-    messages::get_client_messages(client, &mut db, limit, pagination_key, from_date, to_date)
+    get_client_messages_new(client, limit, pagination_key, from_date, to_date, None, &mut db)
+}
+
+pub fn get_client_messages_new(
+    client: &Client,
+    limit: Option<i64>,
+    pagination_key: Option<String>,
+    from_date: Option<i64>,
+    to_date: Option<i64>,
+    conversation_id: Option<String>,
+    db: &mut Database,
+) -> Result<serde_json::Value, EngineError> {
+    init_logger();
+    let limit = limit.map(|v| std::cmp::min(v, 25));
+
+    messages::get_client_messages(client, db, limit, pagination_key, from_date, to_date, conversation_id)
 }
 
 pub fn get_client_conversations(
