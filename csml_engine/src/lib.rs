@@ -223,6 +223,7 @@ pub fn get_client_messages(
     to_date: Option<i64>,
 ) -> Result<serde_json::Value, EngineError> {
     let mut db = init_db()?;
+    let limit = limit.map(|v| std::cmp::min(v, 25));
 
     get_client_messages_new(client, limit, pagination_key, from_date, to_date, None, &mut db)
 }
@@ -237,7 +238,6 @@ pub fn get_client_messages_new(
     db: &mut Database,
 ) -> Result<serde_json::Value, EngineError> {
     init_logger();
-    let limit = limit.map(|v| std::cmp::min(v, 25));
 
     messages::get_client_messages(client, db, limit, pagination_key, from_date, to_date, conversation_id)
 }
