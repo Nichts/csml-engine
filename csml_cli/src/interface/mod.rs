@@ -324,7 +324,7 @@ fn handle_normal_mode<'a>(
     directory_name: &mut String,
 ) -> Result<Exit, Box<dyn Error>> {
     match input {
-        KeyEvent { code, modifiers } if modifiers.is_empty() => match code {
+        KeyEvent { code, modifiers, .. } if modifiers.is_empty() => match code {
             KeyCode::Enter => {
                 if let Some(index) = app.menu_state.selected {
                     match &app.menu_state.menu[index].component {
@@ -363,7 +363,7 @@ fn handle_normal_mode<'a>(
             KeyCode::Esc => Ok(Exit::Exit),
             _ => Ok(Exit::None),
         },
-        KeyEvent { code, modifiers } => match code {
+        KeyEvent { code, modifiers, .. } => match code {
             KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => Ok(Exit::Exit),
             _ => Ok(Exit::None),
         },
@@ -372,7 +372,7 @@ fn handle_normal_mode<'a>(
 
 fn handle_editing_mode(input: KeyEvent, app: &mut AppInit) -> Result<Exit, Box<dyn Error>> {
     match input {
-        KeyEvent { code, modifiers } if modifiers.is_empty() => match code {
+        KeyEvent { code, modifiers, .. } if modifiers.is_empty() => match code {
             KeyCode::Enter => {
                 if let Some(index) = app.menu_state.selected {
                     let item = &mut app.menu_state.menu[index];
@@ -405,7 +405,7 @@ fn handle_editing_mode(input: KeyEvent, app: &mut AppInit) -> Result<Exit, Box<d
             }
             _ => Ok(Exit::None),
         },
-        KeyEvent { code, modifiers } => match code {
+        KeyEvent { code, modifiers, .. } => match code {
             KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => Ok(Exit::Exit),
             _ => Ok(Exit::None),
         },
@@ -414,7 +414,7 @@ fn handle_editing_mode(input: KeyEvent, app: &mut AppInit) -> Result<Exit, Box<d
 
 fn handle_select_mode(input: KeyEvent, app: &mut AppInit) -> Result<Exit, Box<dyn Error>> {
     match input {
-        KeyEvent { code, modifiers } if modifiers.is_empty() => match code {
+        KeyEvent { code, modifiers, .. } if modifiers.is_empty() => match code {
             KeyCode::Enter => {
                 if let Some(index) = app.menu_state.selected {
                     let item = &mut app.menu_state.menu[index];
@@ -456,7 +456,7 @@ fn handle_select_mode(input: KeyEvent, app: &mut AppInit) -> Result<Exit, Box<dy
             }
             _ => Ok(Exit::None),
         },
-        KeyEvent { code, modifiers } => match code {
+        KeyEvent { code, modifiers, .. } => match code {
             KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => Ok(Exit::Exit),
             _ => Ok(Exit::None),
         },
@@ -473,7 +473,7 @@ fn handle_run_normal_mode(
     directory_name: &str,
 ) -> Result<Exit, Box<dyn Error>> {
     match input {
-        KeyEvent { code, modifiers } if modifiers.is_empty() => match code {
+        KeyEvent { code, modifiers, .. } if modifiers.is_empty() => match code {
             KeyCode::Char('e') => {
                 app.input_mode = AppState::RunEditing;
 
@@ -520,7 +520,7 @@ fn handle_run_normal_mode(
             }
             _ => return Ok(Exit::None),
         },
-        KeyEvent { code, modifiers } => match code {
+        KeyEvent { code, modifiers, .. } => match code {
             KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => Ok(Exit::Exit),
             _ => Ok(Exit::None),
         },
@@ -535,7 +535,7 @@ fn handle_run_editing_mode(
     request: Option<CsmlRequest>,
 ) -> Result<Exit, Box<dyn Error>> {
     match input {
-        KeyEvent { code, modifiers } if modifiers.is_empty() => match code {
+        KeyEvent { code, modifiers, .. } if modifiers.is_empty() => match code {
             KeyCode::Enter => {
                 let mut user_input: String = app.input.drain(..).collect();
                 let raw_msg = if user_input.trim().is_empty() {
@@ -617,7 +617,7 @@ fn handle_run_editing_mode(
             }
             _ => return Ok(Exit::None),
         },
-        KeyEvent { code, modifiers } => match code {
+        KeyEvent { code, modifiers, .. } => match code {
             KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => {
                 return Ok(Exit::Exit)
             }
@@ -632,7 +632,7 @@ fn handle_run_editing_mode(
 
 fn handle_main_normal_mode<'a>(input: KeyEvent, app: &mut AppMain) -> Result<Exit, Box<dyn Error>> {
     match input {
-        KeyEvent { code, modifiers } if modifiers.is_empty() => match code {
+        KeyEvent { code, modifiers, .. } if modifiers.is_empty() => match code {
             KeyCode::Enter => {
                 if let Some(index) = app.menu_state.selected {
                     match &app.menu_state.menu[index].component {
@@ -667,7 +667,7 @@ fn handle_main_normal_mode<'a>(input: KeyEvent, app: &mut AppMain) -> Result<Exi
             KeyCode::Esc => Ok(Exit::Exit),
             _ => Ok(Exit::None),
         },
-        KeyEvent { code, modifiers } => match code {
+        KeyEvent { code, modifiers, .. } => match code {
             KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => Ok(Exit::Exit),
             _ => Ok(Exit::None),
         },
@@ -684,7 +684,7 @@ fn handle_select_bot_mode<'a>(
     directory_name: &mut String,
 ) -> Result<Exit, Box<dyn Error>> {
     match input {
-        KeyEvent { code, modifiers } if modifiers.is_empty() => match code {
+        KeyEvent { code, modifiers, .. } if modifiers.is_empty() => match code {
             KeyCode::Enter => {
                 if let Some(index) = app.menu_state.selected {
                     match &app.menu_state.menu[index].component {
@@ -725,7 +725,7 @@ fn handle_select_bot_mode<'a>(
             KeyCode::Esc => Ok(Exit::Exit),
             _ => Ok(Exit::None),
         },
-        KeyEvent { code, modifiers } => match code {
+        KeyEvent { code, modifiers, .. } => match code {
             KeyCode::Char('c') if modifiers.contains(KeyModifiers::CONTROL) => Ok(Exit::Exit),
             _ => Ok(Exit::None),
         },

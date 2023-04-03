@@ -21,6 +21,7 @@ use crate::interpreter::{
 };
 use std::cmp::Ordering;
 use std::{collections::HashMap, sync::mpsc};
+use base64::Engine;
 
 use chrono::{DateTime, FixedOffset, LocalResult, TimeZone, Timelike, Utc};
 use chrono_tz::{Tz, UTC};
@@ -254,7 +255,7 @@ impl PrimitiveObject {
         };
 
         let user_password = format!("{}:{}", username, password);
-        let authorization = format!("Basic {}", base64::encode(user_password.as_bytes()));
+        let authorization = format!("Basic {}", base64::engine::general_purpose::STANDARD.encode(user_password.as_bytes()));
 
         let mut object = object.to_owned();
 
@@ -1746,7 +1747,7 @@ impl PrimitiveObject {
             }
         };
 
-        let result = base64::encode(string.as_bytes());
+        let result = base64::engine::general_purpose::STANDARD.encode(string.as_bytes());
 
         Ok(PrimitiveString::get_literal(&result, interval))
     }
@@ -1771,7 +1772,7 @@ impl PrimitiveObject {
             }
         };
 
-        let result = match base64::decode(string.as_bytes()) {
+        let result = match base64::engine::general_purpose::STANDARD.decode(string.as_bytes()) {
             Ok(buf) => format!("{}", String::from_utf8_lossy(&buf)),
             Err(_) => {
                 return Err(gen_error_info(

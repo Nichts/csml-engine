@@ -19,6 +19,7 @@ use openssl::{
     symm::{decrypt_aead, encrypt_aead, Cipher},
 };
 use std::env;
+use base64::Engine;
 
 fn get_key(salt: &[u8], key: &mut [u8]) -> Result<(), EngineError> {
     let pass = match env::var("ENCRYPTION_SECRET") {
@@ -47,7 +48,7 @@ fn get_key(salt: &[u8], key: &mut [u8]) -> Result<(), EngineError> {
 fn decode(text: &str) -> Result<Vec<u8>, EngineError> {
     match hex::decode(text) {
         Ok(val) => Ok(val),
-        Err(_) => match base64::decode(text) {
+        Err(_) => match base64::engine::general_purpose::STANDARD.decode(text) {
             Ok(val) => Ok(val),
             Err(err) => Err(EngineError::Base64(err)),
         },
@@ -67,7 +68,7 @@ fn encrypt(text: &[u8]) -> Result<String, EngineError> {
 
     let encrypted = encrypt_aead(cipher, &key, Some(&iv), &[], text, &mut tag)?;
 
-    Ok(base64::encode([salt, iv, tag, encrypted].concat()))
+    Ok(base64::engine::general_purpose::STANDARD.encode([salt, iv, tag, encrypted].concat()))
 }
 
 pub fn encrypt_data(value: &serde_json::Value) -> Result<String, EngineError> {

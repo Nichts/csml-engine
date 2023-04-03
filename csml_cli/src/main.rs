@@ -2,80 +2,60 @@ mod init_package;
 mod interface;
 mod run;
 
-use clap::{App, AppSettings, Arg, SubCommand};
+use clap::{Parser};
+use clap_derive::{Parser, Subcommand};
 use csml_engine::data::BotOpt;
 
 use interface::{chat_menu::format_initial_payload, StartUI};
 use run::load_info;
 
+#[derive(Parser)]
+#[command(about = "CSML CLI")]
+pub struct Args {
+    #[command(subcommand)]
+    command: Option<Commands>
+}
+
+#[derive(Subcommand)]
+pub enum Commands {
+    #[command(about = "Run Bot")]
+    Run {
+        #[arg(short, long, help = "start run with text")]
+        text: Option<String>,
+        #[arg(short, long, help = "Select starting flow")]
+        flow: Option<String>,
+        #[arg(short, long, help = "Select starting step")]
+        step: Option<String>,
+        #[arg(short, long, help = "Print debug information's")]
+        debug: bool,
+    },
+    #[command(about = "Create a new CSML Bot in the selected directory")]
+    Init,
+}
+
+
 fn main() {
-    let matches = App::new("CSML CLI")
-        // .setting(AppSettings::ArgRequiredElseHelp)
-        .setting(AppSettings::ColoredHelp)
-        .subcommands(vec![
-            SubCommand::with_name("run")
-                .about("Run Bot")
-                .arg(
-                    Arg::with_name("text")
-                        .short("t")
-                        .long("text")
-                        .value_name("TEXT")
-                        .help("start run with text")
-                        .takes_value(true),
-                )
-                .arg(
-                    Arg::with_name("flow")
-                        .short("f")
-                        .long("flow")
-                        .value_name("FLOW")
-                        .help("Select starting flow")
-                        .takes_value(true),
-                )
-                .arg(
-                    Arg::with_name("step")
-                        .short("s")
-                        .long("step")
-                        .value_name("STEP")
-                        .help("Select starting step")
-                        .takes_value(true),
-                )
-                .arg(
-                    Arg::with_name("debug")
-                        .short("d")
-                        .long("debug")
-                        .help("Print debug information's")
-                        .takes_value(true),
-                ),
-            SubCommand::with_name("init").about("Create a new CSML Bot in the selected directory"),
-        ])
-        .get_matches();
+    let matches = Args::parse();
 
-    if let Some(sub_commands) = &matches.subcommand {
-        match sub_commands.name.as_str() {
-            "init" => interface::csml_ui(StartUI::Init).unwrap(),
-            "run" => {
-                if let Some(run) = matches.subcommand_matches("run") {
-                    let flow = run.value_of("flow");
-                    let step = run.value_of("step");
-                    let text = run.value_of("text");
+    if let Some(command) = matches.command {
+        match command {
+            Commands::Init => interface::csml_ui(StartUI::Init).unwrap(),
+            Commands::Run { text, flow, step, debug: _ } => {
+                let request = format_initial_payload(flow.as_deref(), step.as_deref(), text.as_deref());
 
-                    let request = format_initial_payload(flow, step, text);
+                match load_info(".") {
+                    Ok(bot) => {
+                        let bot_opt = Some(BotOpt::CsmlBot(bot));
 
-                    match load_info(".") {
-                        Ok(bot) => {
-                            let bot_opt = Some(BotOpt::CsmlBot(bot));
+                        let start = StartUI::Run { request, bot_opt };
 
-                            let start = StartUI::Run { request, bot_opt };
-
-                            interface::csml_ui(start).unwrap();
-                        }
-                        Err(..) => {
-                            println!("path [./] is not a valid bot directory")
-                        }
+                        interface::csml_ui(start).unwrap();
+                    }
+                    Err(..) => {
+                        println!("path [./] is not a valid bot directory")
                     }
                 }
             }
-            _ => interface::csml_ui(StartUI::Main).unwrap(),
         }
     } else {
         interface::csml_ui(StartUI::Main).unwrap()
