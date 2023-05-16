@@ -36,7 +36,7 @@ serde-xml-rs = "0.5.1"
 html-escape = "0.2.11"
 quickxml_to_serde = {version = "0.5.0" }
 libc = "0.2.112"
-phf = { version = "0.10.1", features = ["macros"]}
+phf = { version = "0.11.1", features = ["macros"]}
 regex = "1.5.6"
 ureq = { version = "2.4.0", features = ["json"] }
 urlencoding = "2.1"

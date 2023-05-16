@@ -1,3 +1,4 @@
+use base64::Engine;
 use crate::{
     data::{CsmlBotBincode, MongoDbClient, SerializeCsmlBot},
     db_connectors::{BotVersion, DbBot},
@@ -79,7 +80,7 @@ pub fn get_bot_versions(
             Ok(bot_doc) => {
                 let bot_version = format_bot_struct(bot_doc)?;
 
-                let csml_bot: SerializeCsmlBot = match base64::decode(&bot_version.bot) {
+                let csml_bot: SerializeCsmlBot = match base64::engine::general_purpose::STANDARD.decode(&bot_version.bot) {
                     Ok(base64decoded) => {
                         match bincode::deserialize::<CsmlBotBincode>(&base64decoded[..]) {
                             Ok(bot) => bot.to_bot(),
@@ -144,7 +145,7 @@ pub fn get_bot_by_version_id(
         Some(bot) => {
             let bot = format_bot_struct(bot)?;
 
-            let csml_bot: SerializeCsmlBot = match base64::decode(&bot.bot) {
+            let csml_bot: SerializeCsmlBot = match base64::engine::general_purpose::STANDARD.decode(&bot.bot) {
                 Ok(base64decoded) => {
                     match bincode::deserialize::<CsmlBotBincode>(&base64decoded[..]) {
                         Ok(bot) => bot.to_bot(),
@@ -184,7 +185,7 @@ pub fn get_last_bot_version(
         Some(bot) => {
             let bot = format_bot_struct(bot)?;
 
-            let csml_bot: SerializeCsmlBot = match base64::decode(&bot.bot) {
+            let csml_bot: SerializeCsmlBot = match base64::engine::general_purpose::STANDARD.decode(&bot.bot) {
                 Ok(base64decoded) => {
                     match bincode::deserialize::<CsmlBotBincode>(&base64decoded[..]) {
                         Ok(bot) => bot.to_bot(),

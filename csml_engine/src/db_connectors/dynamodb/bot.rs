@@ -8,6 +8,7 @@ use crate::EngineError;
 use csml_interpreter::data::{csml_bot::Module, csml_flow::CsmlFlow};
 use rusoto_dynamodb::*;
 use std::collections::HashMap;
+use base64::Engine;
 
 pub fn create_bot_version(
     bot_id: String,
@@ -212,7 +213,7 @@ pub fn get_bot_by_version_id(
         Some(val) => {
             let bot: Bot = serde_dynamodb::from_hashmap(val)?;
 
-            let csml_bot: DynamoBot = match base64::decode(&bot.bot) {
+            let csml_bot: DynamoBot = match base64::engine::general_purpose::STANDARD.decode(&bot.bot) {
                 Ok(base64decoded) => {
                     match bincode::deserialize::<DynamoBotBincode>(&base64decoded[..]) {
                         Ok(bot) => bot.to_bot(),
@@ -326,7 +327,7 @@ pub fn get_last_bot_version(
         Some(val) => {
             let bot: Bot = serde_dynamodb::from_hashmap(val)?;
 
-            let csml_bot: DynamoBot = match base64::decode(&bot.bot) {
+            let csml_bot: DynamoBot = match base64::engine::general_purpose::STANDARD.decode(&bot.bot) {
                 Ok(base64decoded) => {
                     match bincode::deserialize::<DynamoBotBincode>(&base64decoded[..]) {
                         Ok(bot) => bot.to_bot(),
