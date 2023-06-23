@@ -1,6 +1,6 @@
 use crate::data::DynamoDbClient;
 use crate::db_connectors::dynamodb::{Conversation, ConversationKeys, DynamoDbKey};
-use crate::db_connectors::DbConversation;
+use crate::models::DbConversation;
 use crate::{Client, EngineError};
 use rusoto_dynamodb::*;
 use std::collections::HashMap;

@@ -31,19 +31,13 @@
  * Each method of each module must be fully reimplemented in order to extend the "generic"
  * implementation at the root of db_connectors directory.
  */
-use crate::data::{Database, EngineError};
+use crate::data::{AsyncDatabase, Database, EngineError};
 use crate::error_messages::ERROR_DB_SETUP;
 use csml_interpreter::data::csml_bot::CsmlBot;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "dynamo")]
-use self::dynamodb as dynamodb_connector;
-#[cfg(feature = "mongo")]
-use self::mongodb as mongodb_connector;
-#[cfg(feature = "postgresql")]
+#[cfg(feature = "postgresql-async")]
 use self::postgresql as postgresql_connector;
-#[cfg(feature = "sqlite")]
-use self::sqlite as sqlite_connector;
 
 pub mod bot;
 pub mod conversations;
@@ -57,36 +51,11 @@ pub mod utils;
 
 pub mod db_test;
 
-use crate::Client;
-
-#[cfg(feature = "dynamo")]
-mod dynamodb;
-#[cfg(feature = "mongo")]
-mod mongodb;
-#[cfg(feature = "postgresql")]
+#[cfg(feature = "postgresql-async")]
 mod postgresql;
 
-#[cfg(feature = "sqlite")]
-mod sqlite;
 
-#[cfg(feature = "mongo")]
-pub fn is_mongodb() -> bool {
-    // If the env var is not set at all, use mongodb by default
-    match std::env::var("ENGINE_DB_TYPE") {
-        Ok(val) => val == "mongodb".to_owned(),
-        Err(_) => true,
-    }
-}
-
-#[cfg(feature = "dynamo")]
-pub fn is_dynamodb() -> bool {
-    match std::env::var("ENGINE_DB_TYPE") {
-        Ok(val) => val == "dynamodb".to_owned(),
-        Err(_) => false,
-    }
-}
-
-#[cfg(feature = "postgresql")]
+#[cfg(feature = "postgresql-async")]
 pub fn is_postgresql() -> bool {
     match std::env::var("ENGINE_DB_TYPE") {
         Ok(val) => val == *"postgresql",
@@ -94,47 +63,28 @@ pub fn is_postgresql() -> bool {
     }
 }
 
-#[cfg(feature = "sqlite")]
-pub fn is_sqlite() -> bool {
-    match std::env::var("ENGINE_DB_TYPE") {
-        Ok(val) => val == *"sqlite",
-        Err(_) => false,
+pub fn init_db_sync() -> Result<Database<'static>, EngineError> {
+    #[cfg(feature = "postgresql-async")]
+    if is_postgresql() {
+        return postgresql_connector::init_sync();
     }
+
+    Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
 }
 
-pub fn init_db() -> Result<Database<'static>, EngineError> {
-    #[cfg(feature = "mongo")]
-    if is_mongodb() {
-        return mongodb_connector::init();
-    }
-
-    #[cfg(feature = "dynamo")]
-    if is_dynamodb() {
-        return dynamodb_connector::init();
-    }
-
-    #[cfg(feature = "postgresql")]
+pub async fn init_db() -> Result<AsyncDatabase<'static>, EngineError> {
+    #[cfg(feature = "postgresql-async")]
     if is_postgresql() {
-        return postgresql_connector::init();
-    }
-
-    #[cfg(feature = "sqlite")]
-    if is_sqlite() {
-        return sqlite_connector::init();
+        return postgresql_connector::init().await;
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
 }
 
 pub fn make_migrations() -> Result<(), EngineError> {
-    #[cfg(feature = "postgresql")]
+    #[cfg(feature = "postgresql-async")]
     if is_postgresql() {
-        return self::postgresql::make_migrations();
-    }
-
-    #[cfg(feature = "sqlite")]
-    if is_sqlite() {
-        return self::sqlite::make_migrations();
+        return postgresql::make_migrations();
     }
 
     Ok(())

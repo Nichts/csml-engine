@@ -1,10 +1,11 @@
 use crate::{
-    db_connectors::{mongodb::get_db, DbMessage},
-    encrypt::{decrypt_data, encrypt_data},
-    Client, ConversationInfo, EngineError, MongoDbClient,
+    Client,
+    ConversationInfo,
+    db_connectors::mongodb::get_db, encrypt::decrypt_data, EngineError, MongoDbClient,
 };
 use bson::{doc, Document};
 use chrono::SecondsFormat;
+use crate::models::DbMessage;
 
 fn format_messages(
     data: &ConversationInfo,

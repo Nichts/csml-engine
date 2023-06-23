@@ -1,11 +1,11 @@
 use base64::Engine;
 use crate::{
     data::{CsmlBotBincode, MongoDbClient, SerializeCsmlBot},
-    db_connectors::{BotVersion, DbBot},
     EngineError,
 };
 use bson::{doc, Document};
 use chrono::SecondsFormat;
+use crate::models::{BotVersion, DbBot};
 
 fn format_bot_struct(bot: bson::document::Document) -> Result<DbBot, EngineError> {
     Ok(DbBot {

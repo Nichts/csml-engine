@@ -11,7 +11,8 @@ use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
 
 use crate::db_connectors::{state, utils::*};
 use crate::error_messages::ERROR_DB_SETUP;
-use crate::{Client, ConversationInfo, Database, DbConversation, EngineError};
+use crate::{Client, ConversationInfo, Database, EngineError};
+use crate::models::DbConversation;
 
 pub fn create_conversation(
     flow_id: &str,

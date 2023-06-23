@@ -1,14 +1,13 @@
 use crate::data::{DynamoBot, DynamoBotBincode, DynamoDbClient};
-use crate::db_connectors::dynamodb::utils::*;
 use crate::db_connectors::{
     dynamodb::{aws_s3, Bot, BotKeys, Class, DynamoDbKey},
-    BotVersion,
 };
 use crate::EngineError;
 use csml_interpreter::data::{csml_bot::Module, csml_flow::CsmlFlow};
 use rusoto_dynamodb::*;
 use std::collections::HashMap;
 use base64::Engine;
+use crate::models::BotVersion;
 
 pub fn create_bot_version(
     bot_id: String,

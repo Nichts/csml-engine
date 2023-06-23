@@ -1,5 +1,7 @@
 pub mod data;
 
+#[cfg(feature = "async")]
+mod future;
 mod db_connectors;
 mod encrypt;
 mod error_messages;
@@ -7,15 +9,16 @@ mod init;
 mod interpreter_actions;
 mod send;
 mod utils;
+mod models;
 
 pub use csml_interpreter::{
     data::{
         ast::{Expr, Flow, InstructionScope},
+        Client,
         csml_logs::*,
+        CsmlResult,
         error_info::ErrorInfo,
-        position::Position,
-        warnings::Warnings,
-        Client, CsmlResult, Event,
+        Event, position::Position, warnings::Warnings,
     },
     load_components, search_for_modules,
 };
@@ -32,7 +35,7 @@ use data::*;
 use db_connectors::{
     bot, clean_db, conversations, init_db, memories, messages, state,
     state::{delete_state_key, set_state_items},
-    user, BotVersion, BotVersionCreated, DbConversation,
+    user,
 };
 use init::*;
 use interpreter_actions::{interpret_step, SwitchBot};
@@ -40,9 +43,10 @@ use utils::*;
 
 use chrono::prelude::*;
 use csml_interpreter::data::{
-    csml_bot::CsmlBot, csml_flow::CsmlFlow, Context, Hold, IndexInfo, Memory,
+    Context, csml_bot::CsmlBot, csml_flow::CsmlFlow, Hold, IndexInfo, Memory,
 };
 use std::{collections::HashMap, env};
+use models::{BotVersion, BotVersionCreated, DbConversation};
 
 pub fn start_conversation_db(
     request: CsmlRequest,

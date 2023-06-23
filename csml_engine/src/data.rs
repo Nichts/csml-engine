@@ -394,6 +394,11 @@ pub enum Database<'a> {
     None(std::marker::PhantomData<&'a ()>),
 }
 
+pub enum AsyncDatabase<'a> {
+    #[cfg(feature = "postgresql-async")]
+    Postgresql(AsyncPostgresqlClient<'a>),
+}
+
 #[cfg(feature = "sqlite")]
 pub struct SqliteClient<'a> {
     pub client: Connections<'a, diesel::prelude::SqliteConnection>,
@@ -453,6 +458,18 @@ impl DynamoDbClient {
     }
 }
 
+#[cfg(feature = "postgresql-async")]
+pub struct AsyncPostgresqlClient<'a> {
+    pub client: Connections<'a, diesel_async::pg::AsyncPgConnection>,
+}
+
+#[cfg(feature = "postgresql-async")]
+impl AsyncPostgresqlClient<'static> {
+    pub fn new(client: diesel_async::pg::AsyncPgConnection) -> Self {
+        Self { client: Connections::Direct(client)}
+    }
+}
+
 pub struct ConversationInfo<'a> {
     pub request_id: String,
     pub conversation_id: String,
@@ -464,6 +481,20 @@ pub struct ConversationInfo<'a> {
     pub ttl: Option<chrono::Duration>,
     pub low_data: bool,
     pub db: Database<'a>,
+}
+
+#[cfg(feature = "async")]
+pub struct AsyncConversationInfo<'a> {
+    pub request_id: String,
+    pub conversation_id: String,
+    pub callback_url: Option<String>,
+    pub client: Client,
+    pub context: Context,
+    pub metadata: Value,
+    pub messages: Vec<Message>,
+    pub ttl: Option<chrono::Duration>,
+    pub low_data: bool,
+    pub db: AsyncDatabase<'a>,
 }
 
 #[derive(Debug)]

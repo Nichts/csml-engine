@@ -1,6 +1,7 @@
-use crate::{db_connectors::DbConversation, Client, EngineError, MongoDbClient};
+use crate::{Client, EngineError, MongoDbClient};
 use bson::{doc, Document};
 use chrono::SecondsFormat;
+use crate::models::DbConversation;
 
 fn format_conversation_struct(
     conversation: bson::document::Document,

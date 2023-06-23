@@ -8,8 +8,9 @@ use crate::db_connectors::{is_postgresql, postgresql_connector};
 use crate::db_connectors::{is_sqlite, sqlite_connector};
 
 use crate::error_messages::ERROR_DB_SETUP;
-use crate::{BotVersion, CsmlBot, Database, EngineError};
+use crate::{CsmlBot, Database, EngineError};
 use csml_interpreter::data::csml_logs::*;
+use crate::models::BotVersion;
 
 pub fn create_bot_version(
     bot_id: String,
