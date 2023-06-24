@@ -19,6 +19,7 @@ use serde_json::Value;
 
 pub const DEBUG: &str = "DEBUG";
 pub const DISABLE_SSL_VERIFY: &str = "DISABLE_SSL_VERIFY";
+pub use models::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SerializeCsmlBot {
