@@ -4,7 +4,7 @@ mod run;
 
 use clap::{Parser};
 use clap_derive::{Parser, Subcommand};
-use csml_engine::data::BotOpt;
+use csml_engine::data::models::BotOpt;
 
 use interface::{chat_menu::format_initial_payload, StartUI};
 use run::load_info;

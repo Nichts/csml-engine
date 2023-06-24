@@ -1,29 +1,27 @@
-pub mod models;
-
-use crate::db_connectors::{conversations::*, memories::*, messages::*, state::*};
-use crate::utils::*;
-use crate::{data::*};
+use crate::future::db_connectors::{conversations::*, memories::*, messages::*, state::*};
+use crate::future::utils::*;
 
 use csml_interpreter::data::context::ContextStepInfo;
 use csml_interpreter::{
     data::{
-        ast::ForgetMemory, Client, csml_bot::CsmlBot, csml_flow::CsmlFlow, csml_logs::*, Event,
-        Hold, Memory, Message, MSG, MultiBot,
+        ast::ForgetMemory, csml_bot::CsmlBot, csml_flow::CsmlFlow, csml_logs::*, Client, Event,
+        Hold, Memory, Message, MultiBot, MSG,
     },
     interpret,
 };
 use serde_json::{map::Map, Value};
 use std::collections::HashMap;
 use std::{sync::mpsc, thread};
-pub use models::{InterpreterReturn, SwitchBot};
+use crate::data::{AsyncConversationInfo, EngineError};
+use crate::interpreter_actions::models::{InterpreterReturn, SwitchBot};
 
 /**
  * This is the CSML Engine action.
  * A request came in and should be handled. Once the ConversationInfo is correctly setup,
  * this step is called in a loop until a `hold` or `goto end` is reached.
  */
-pub fn interpret_step(
-    data: &mut ConversationInfo,
+pub async fn interpret_step(
+    data: &mut AsyncConversationInfo<'_>,
     event: Event,
     bot: &CsmlBot,
 ) -> Result<(Map<String, Value>, Option<SwitchBot>), EngineError> {
@@ -70,16 +68,16 @@ pub fn interpret_step(
             MSG::Forget(mem) => match mem {
                 ForgetMemory::ALL => {
                     memories.clear();
-                    delete_client_memories(&data.client, &mut data.db)?;
+                    delete_client_memories(&data.client, &mut data.db).await?;
                 }
                 ForgetMemory::SINGLE(memory) => {
                     memories.remove(&memory.ident);
-                    delete_client_memory(&data.client, &memory.ident, &mut data.db)?;
+                    delete_client_memory(&data.client, &memory.ident, &mut data.db).await?;
                 }
                 ForgetMemory::LIST(mem_list) => {
                     for mem in mem_list.iter() {
                         memories.remove(&mem.ident);
-                        delete_client_memory(&data.client, &mem.ident, &mut data.db)?;
+                        delete_client_memory(&data.client, &mem.ident, &mut data.db).await?;
                     }
                 }
             },
@@ -103,7 +101,7 @@ pub fn interpret_step(
                     LogLvl::Debug,
                 );
 
-                send_msg_to_callback_url(data, vec![msg.clone()], interaction_order, false);
+                send_msg_to_callback_url(data, vec![msg.clone()], interaction_order, false).await;
                 data.messages.push(msg);
             }
             MSG::Log {
@@ -159,7 +157,7 @@ pub fn interpret_step(
                     vec![("position", &state_hold)],
                     data.ttl,
                     &mut data.db,
-                )?;
+                ).await?;
                 data.context.hold = Some(Hold {
                     index,
                     step_vars,
@@ -183,7 +181,7 @@ pub fn interpret_step(
                     &mut memories,
                     flow,
                     step,
-                ) {
+                ).await {
                     break;
                 }
             }
@@ -194,7 +192,7 @@ pub fn interpret_step(
                 bot: Some(target_bot),
             } => {
                 if let Ok(InterpreterReturn::SwitchBot(s_bot)) =
-                    manage_switch_bot(data, &mut interaction_order, bot, flow, step, target_bot)
+                    manage_switch_bot(data, &mut interaction_order, bot, flow, step, target_bot).await
                 {
                     switch_bot = Some(s_bot);
                     break;
@@ -213,9 +211,9 @@ pub fn interpret_step(
                     LogLvl::Error,
                 );
 
-                send_msg_to_callback_url(data, vec![err_msg.clone()], interaction_order, true);
+                send_msg_to_callback_url(data, vec![err_msg.clone()], interaction_order, true).await;
                 data.messages.push(err_msg);
-                close_conversation(&data.conversation_id, &data.client, &mut data.db)?;
+                close_conversation(&data.conversation_id, &data.client, &mut data.db).await?;
             }
         }
     }
@@ -228,10 +226,10 @@ pub fn interpret_step(
         .collect();
 
     if !data.low_data {
-        add_messages_bulk(data, msgs, interaction_order, "SEND")?;
+        add_messages_bulk(data, msgs, interaction_order, "SEND").await?;
     }
 
-    add_memories(data, &memories)?;
+    add_memories(data, &memories).await?;
 
     Ok((
         messages_formatter(
@@ -244,8 +242,8 @@ pub fn interpret_step(
     ))
 }
 
-fn manage_switch_bot<'a>(
-    data: &mut ConversationInfo,
+async fn manage_switch_bot<'a>(
+    data: &mut AsyncConversationInfo<'_>,
     interaction_order: &mut i32,
     bot: &'a CsmlBot,
     flow: Option<String>,
@@ -284,7 +282,7 @@ fn manage_switch_bot<'a>(
                 }],
                 *interaction_order,
                 true,
-            );
+            ).await;
 
             csml_logger(
                 CsmlLog::new(
@@ -374,7 +372,7 @@ fn manage_switch_bot<'a>(
     // save message
     data.messages.push(message.clone());
     // send message switch bot
-    send_msg_to_callback_url(data, vec![message], *interaction_order, true);
+    send_msg_to_callback_url(data, vec![message], *interaction_order, true).await;
 
     csml_logger(
         CsmlLog::new(
@@ -386,7 +384,7 @@ fn manage_switch_bot<'a>(
         LogLvl::Info,
     );
 
-    close_conversation(&data.conversation_id, &data.client, &mut data.db)?;
+    close_conversation(&data.conversation_id, &data.client, &mut data.db).await?;
 
     let previous_bot: Value = serde_json::json!({
         "bot": data.client.bot_id,
@@ -404,7 +402,7 @@ fn manage_switch_bot<'a>(
         vec![("previous", &previous_bot)],
         data.ttl,
         &mut data.db,
-    )?;
+    ).await?;
 
     Ok(InterpreterReturn::SwitchBot(SwitchBot {
         bot_id: next_bot.id.to_owned(),
@@ -414,8 +412,8 @@ fn manage_switch_bot<'a>(
     }))
 }
 
-fn manage_internal_goto<'a>(
-    data: &mut ConversationInfo,
+async fn manage_internal_goto<'a>(
+    data: &mut AsyncConversationInfo<'_>,
     conversation_end: &mut bool,
     interaction_order: &mut i32,
     current_flow: &mut &'a CsmlFlow,
@@ -442,7 +440,7 @@ fn manage_internal_goto<'a>(
                 LogLvl::Debug,
             );
             update_current_context(data, memories);
-            goto_flow(data, interaction_order, current_flow, bot, flow, step)?
+            goto_flow(data, interaction_order, current_flow, bot, flow, step).await?
         }
         (Some(flow), None) => {
             csml_logger(
@@ -462,7 +460,7 @@ fn manage_internal_goto<'a>(
             update_current_context(data, memories);
             let step = ContextStepInfo::Normal("start".to_owned());
 
-            goto_flow(data, interaction_order, current_flow, bot, flow, step)?
+            goto_flow(data, interaction_order, current_flow, bot, flow, step).await?
         }
         (None, Some(step)) => {
             csml_logger(
@@ -480,7 +478,7 @@ fn manage_internal_goto<'a>(
                 ),
                 LogLvl::Debug,
             );
-            if goto_step(data, conversation_end, interaction_order, step)? {
+            if goto_step(data, conversation_end, interaction_order, step).await? {
                 return Ok(InterpreterReturn::End);
             }
         }
@@ -500,7 +498,7 @@ fn manage_internal_goto<'a>(
             );
 
             let step = ContextStepInfo::Normal("end".to_owned());
-            if goto_step(data, conversation_end, interaction_order, step)? {
+            if goto_step(data, conversation_end, interaction_order, step).await? {
                 return Ok(InterpreterReturn::End);
             }
         }
@@ -512,8 +510,8 @@ fn manage_internal_goto<'a>(
 /**
  * CSML `goto flow` action
  */
-fn goto_flow<'a>(
-    data: &mut ConversationInfo,
+async fn goto_flow<'a>(
+    data: &mut AsyncConversationInfo<'_>,
     interaction_order: &mut i32,
     current_flow: &mut &'a CsmlFlow,
     bot: &'a CsmlBot,
@@ -528,7 +526,7 @@ fn goto_flow<'a>(
         data,
         Some(current_flow.id.clone()),
         Some(data.context.step.get_step()),
-    )?;
+    ).await?;
 
     *interaction_order += 1;
 
@@ -538,8 +536,8 @@ fn goto_flow<'a>(
 /**
  * CSML `goto step` action
  */
-fn goto_step<'a>(
-    data: &mut ConversationInfo,
+async fn goto_step<'a>(
+    data: &mut AsyncConversationInfo<'_>,
     conversation_end: &mut bool,
     interaction_order: &mut i32,
     nextstep: ContextStepInfo,
@@ -548,14 +546,14 @@ fn goto_step<'a>(
         *conversation_end = true;
 
         // send end of conversation
-        send_msg_to_callback_url(data, vec![], *interaction_order, *conversation_end);
-        close_conversation(&data.conversation_id, &data.client, &mut data.db)?;
+        send_msg_to_callback_url(data, vec![], *interaction_order, *conversation_end).await;
+        close_conversation(&data.conversation_id, &data.client, &mut data.db).await?;
 
         // break interpret_step loop
         return Ok(*conversation_end);
     } else {
         data.context.step = nextstep;
-        update_conversation(data, None, Some(data.context.step.get_step()))?;
+        update_conversation(data, None, Some(data.context.step.get_step())).await?;
     }
 
     *interaction_order += 1;

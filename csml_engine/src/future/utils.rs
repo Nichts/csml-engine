@@ -1,8 +1,8 @@
 use crate::{
     CsmlBot,
     CsmlFlow,
-    data::{ConversationInfo, Database, EngineError},
-    db_connectors::state::delete_state_key, send::send_to_callback_url,
+    data::{AsyncConversationInfo, AsyncDatabase, EngineError},
+    future::db_connectors::state::delete_state_key, future::send::send_to_callback_url,
 };
 
 use chrono::{prelude::Utc, SecondsFormat};
@@ -33,7 +33,7 @@ use crate::data::models::{CsmlRequest, FlowTrigger};
  * Instead, the memory is saved in bulk at the end of each step or interaction, but we still
  * must allow the user to use the `remembered` data immediately.
  */
-pub fn update_current_context(data: &mut ConversationInfo, memories: &HashMap<String, Memory>) {
+pub fn update_current_context(data: &mut AsyncConversationInfo<'_>, memories: &HashMap<String, Memory>) {
     for (_key, mem) in memories.iter() {
         let lit = json_to_literal(&mem.value, Interval::default(), &data.context.flow).unwrap();
 
@@ -155,8 +155,8 @@ pub fn format_event(request: &CsmlRequest) -> Result<Event, EngineError> {
  * Send a message to the configured callback_url.
  * If not callback_url is configured, skip this action.
  */
-pub fn send_msg_to_callback_url(
-    data: &mut ConversationInfo,
+pub async fn send_msg_to_callback_url(
+    data: &mut AsyncConversationInfo<'_>,
     msg: Vec<Message>,
     interaction_order: i32,
     end: bool,
@@ -173,13 +173,13 @@ pub fn send_msg_to_callback_url(
         LogLvl::Debug,
     );
 
-    send_to_callback_url(data, serde_json::json!(messages))
+    send_to_callback_url(data, serde_json::json!(messages)).await
 }
 
 /**
  * Update ConversationInfo data with current information about the request.
  */
-fn add_info_to_message(data: &ConversationInfo, mut msg: Message, interaction_order: i32) -> Value {
+fn add_info_to_message(data: &AsyncConversationInfo<'_>, mut msg: Message, interaction_order: i32) -> Value {
     let payload = msg.message_to_json();
 
     let mut map_msg: Map<String, Value> = Map::new();
@@ -197,7 +197,7 @@ fn add_info_to_message(data: &ConversationInfo, mut msg: Message, interaction_or
  * - return action: at the end of the interaction, all messages are returned as they were processed
  */
 pub fn messages_formatter(
-    data: &mut ConversationInfo,
+    data: &mut AsyncConversationInfo<'_>,
     vec_msg: Vec<Message>,
     interaction_order: i32,
     end: bool,
@@ -270,15 +270,15 @@ pub fn get_default_flow<'a>(bot: &'a CsmlBot) -> Result<&'a CsmlFlow, EngineErro
  * - flow_trigger events must will match a flow's id or name and reset the hold position
  * - other events will try to match a flow trigger
  */
-pub fn search_flow<'a>(
+pub async fn search_flow<'a>(
     event: &Event,
     bot: &'a CsmlBot,
     client: &Client,
-    db: &mut Database,
+    db: &mut AsyncDatabase<'_>,
 ) -> Result<(&'a CsmlFlow, String), EngineError> {
     match event {
         event if event.content_type == "flow_trigger" => {
-            delete_state_key(client, "hold", "position", db)?;
+            delete_state_key(client, "hold", "position", db).await?;
 
             let flow_trigger: FlowTrigger = serde_json::from_str(&event.content_value)?;
 
@@ -312,7 +312,7 @@ pub fn search_flow<'a>(
 
             match random_flows.choose(&mut rand::thread_rng()) {
                 Some(flow) => {
-                    delete_state_key(client, "hold", "position", db)?;
+                    delete_state_key(client, "hold", "position", db).await?;
                     Ok((flow, "start".to_owned()))
                 }
                 None => Err(EngineError::Interpreter(format!(
@@ -337,7 +337,7 @@ pub fn search_flow<'a>(
 
             match random_flows.choose(&mut rand::thread_rng()) {
                 Some(flow) => {
-                    delete_state_key(client, "hold", "position", db)?;
+                    delete_state_key(client, "hold", "position", db).await?;
                     Ok((flow, "start".to_owned()))
                 }
                 None => Err(EngineError::Interpreter(format!(
@@ -451,8 +451,8 @@ pub fn get_current_step_hash(context: &Context, bot: &CsmlBot) -> Result<String,
     Ok(format!("{:x}", hash.finalize()))
 }
 
-pub fn clean_hold_and_restart(data: &mut ConversationInfo) -> Result<(), EngineError> {
-    delete_state_key(&data.client, "hold", "position", &mut data.db)?;
+pub async fn clean_hold_and_restart(data: &mut AsyncConversationInfo<'_>) -> Result<(), EngineError> {
+    delete_state_key(&data.client, "hold", "position", &mut data.db).await?;
     data.context.hold = None;
     Ok(())
 }

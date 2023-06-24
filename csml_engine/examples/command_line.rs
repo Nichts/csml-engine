@@ -1,15 +1,15 @@
 use csml_engine::{
-    data::{BotOpt, CsmlRequest},
     delete_expired_data, start_conversation,
 };
 use csml_interpreter::{
-    data::{csml_bot::CsmlBot, csml_flow::CsmlFlow, Client},
+    data::{Client, csml_bot::CsmlBot, csml_flow::CsmlFlow},
     load_components,
 };
 use serde_json::json;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::stdin;
+use csml_engine::data::models::{BotOpt, CsmlRequest};
 
 fn get_flow(name: &str) -> Result<String, ::std::io::Error> {
     let file_path = format!("CSML/{}.csml", name);

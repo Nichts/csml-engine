@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use csml_interpreter::data::{context::ContextStepInfo, CsmlFlow, Message};
+    use csml_interpreter::data::{context::ContextStepInfo, CsmlBot, CsmlFlow, Message};
     use std::collections::HashMap;
 
     use crate::{future::db_connectors::*, future::db_connectors::init_db, make_migrations, Client, Context, AsyncConversationInfo};

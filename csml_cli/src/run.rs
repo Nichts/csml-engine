@@ -1,4 +1,4 @@
-use csml_engine::data::CsmlRequest;
+use csml_engine::data::models::CsmlRequest;
 use csml_interpreter::{
     data::{csml_bot::CsmlBot, csml_flow::CsmlFlow, Client},
     load_components,

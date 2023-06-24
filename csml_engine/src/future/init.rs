@@ -1,9 +1,9 @@
-use crate::db_connectors::{conversations::*, memories::*, state};
+use crate::future::db_connectors::{conversations::*, memories::*, state};
 use crate::interpreter_actions::models::SwitchBot;
 use crate::{
     Context,
     CsmlBot,
-    CsmlFlow, CsmlResult, data::{ConversationInfo, Database, EngineError}, utils::{
+    CsmlFlow, CsmlResult, data::{AsyncConversationInfo, AsyncDatabase, EngineError}, future::utils::{
         get_default_flow, get_flow_by_id, get_low_data_mode_value, get_ttl_duration_value,
         search_flow, send_msg_to_callback_url,
     },
@@ -37,13 +37,13 @@ use crate::data::models::{BotOpt, CsmlRequest};
  * This method takes care of the initialization of the data as well as setting up
  * some information in the database (conversation_id, metadata, state...).
  */
-pub fn init_conversation_info<'a, 'b>(
+pub async fn init_conversation_info<'a, 'b>(
     default_flow: String,
     event: &Event,
     request: &'a CsmlRequest,
     bot: &'a CsmlBot,
-    mut db: Database<'b>,
-) -> Result<ConversationInfo<'b>, EngineError> {
+    mut db: AsyncDatabase<'b>,
+) -> Result<AsyncConversationInfo<'b>, EngineError> {
     // Create a new interaction. An interaction is basically each request,
     // initiated from the bot or the user.
 
@@ -52,14 +52,14 @@ pub fn init_conversation_info<'a, 'b>(
         request.client.clone(),
         &bot.apps_endpoint,
         &mut db,
-    );
+    ).await;
     let ttl = get_ttl_duration_value(Some(event));
     let low_data = get_low_data_mode_value(event);
 
     // Do we have a flow matching the request? If the user is requesting a flow in one way
     // or another, this takes precedence over any previously open conversation
     // and a new conversation is created with the new flow as a starting point.
-    let flow_found = search_flow(event, bot, &request.client, &mut db).ok();
+    let flow_found = search_flow(event, bot, &request.client, &mut db).await.ok();
     let conversation_id = get_or_create_conversation(
         &mut context,
         bot,
@@ -67,15 +67,15 @@ pub fn init_conversation_info<'a, 'b>(
         &request.client,
         ttl,
         &mut db,
-    )?;
+    ).await?;
 
     context.metadata = get_hashmap_from_json(&request.metadata, &context.flow);
     context.current = get_hashmap_from_mem(
-        &internal_use_get_memories(&request.client, &mut db)?,
+        &internal_use_get_memories(&request.client, &mut db).await?,
         &context.flow,
     );
 
-    let mut data = ConversationInfo {
+    let mut data = AsyncConversationInfo {
         conversation_id,
         context,
         metadata: request.metadata.clone(), // ??
@@ -93,7 +93,7 @@ pub fn init_conversation_info<'a, 'b>(
 
     // Now that everything is correctly setup, update the conversation with wherever
     // we are now and continue with the rest of the request!
-    update_conversation(&mut data, Some(flow), Some(step.get_step()))?;
+    update_conversation(&mut data, Some(flow), Some(step.get_step())).await?;
 
     Ok(data)
 }
@@ -160,13 +160,13 @@ fn set_bot_ast(bot: &mut CsmlBot) -> Result<(), EngineError> {
 /**
  * Initialize the context object for incoming requests
  */
-pub fn init_context(
+pub async fn init_context(
     flow: String,
     client: Client,
     apps_endpoint: &Option<String>,
-    db: &mut Database,
+    db: &mut AsyncDatabase<'_>,
 ) -> Context {
-    let previous_bot = get_previous_bot(&client, db);
+    let previous_bot = get_previous_bot(&client, db).await;
 
     let api_info = apps_endpoint.as_ref().map(|value| ApiInfo {
             client,
@@ -184,8 +184,8 @@ pub fn init_context(
     }
 }
 
-fn get_previous_bot(client: &Client, db: &mut Database) -> Option<PreviousBot> {
-    match state::get_state_key(client, "bot", "previous", db) {
+async fn get_previous_bot(client: &Client, db: &mut AsyncDatabase<'_>) -> Option<PreviousBot> {
+    match state::get_state_key(client, "bot", "previous", db).await {
         Ok(Some(bot)) => serde_json::from_value(bot).ok(),
         _ => None,
     }
@@ -194,15 +194,15 @@ fn get_previous_bot(client: &Client, db: &mut Database) -> Option<PreviousBot> {
 /**
  * Retrieve the current conversation, or create one if none exists.
  */
-fn get_or_create_conversation<'a>(
+async fn get_or_create_conversation<'a>(
     context: &mut Context,
     bot: &'a CsmlBot,
     flow_found: Option<(&'a CsmlFlow, String)>,
     client: &Client,
     ttl: Option<chrono::Duration>,
-    db: &mut Database,
+    db: &mut AsyncDatabase<'_>,
 ) -> Result<String, EngineError> {
-    match get_latest_open(client, db)? {
+    match get_latest_open(client, db).await? {
         Some(conversation) => {
             match flow_found {
                 Some((flow, step)) => {
@@ -214,11 +214,11 @@ fn get_or_create_conversation<'a>(
                         Ok(flow) => flow,
                         Err(..) => {
                             // if flow id exist in db but not in bot close conversation
-                            close_conversation(&conversation.id, client, db)?;
+                            close_conversation(&conversation.id, client, db).await?;
                             // start new conversation at default flow
                             return create_new_conversation(
                                 context, bot, flow_found, client, ttl, db,
-                            );
+                            ).await;
                         }
                     };
 
@@ -229,27 +229,27 @@ fn get_or_create_conversation<'a>(
 
             Ok(conversation.id)
         }
-        None => create_new_conversation(context, bot, flow_found, client, ttl, db),
+        None => create_new_conversation(context, bot, flow_found, client, ttl, db).await,
     }
 }
 
 /**
  * Create and save a new conversation in DB
  */
-fn create_new_conversation<'a>(
+async fn create_new_conversation<'a>(
     context: &mut Context,
     bot: &'a CsmlBot,
     flow_found: Option<(&'a CsmlFlow, String)>,
     client: &Client,
     ttl: Option<chrono::Duration>,
-    db: &mut Database,
+    db: &mut AsyncDatabase<'_>,
 ) -> Result<String, EngineError> {
     let (flow, step) = match flow_found {
         Some((flow, step)) => (flow, step),
         None => (get_default_flow(bot)?, "start".to_owned()),
     };
 
-    let conversation_id = create_conversation(&flow.id, &step, client, ttl, db)?;
+    let conversation_id = create_conversation(&flow.id, &step, client, ttl, db).await?;
 
     context.step = ContextStepInfo::UnknownFlow(step);
     context.flow = flow.name.to_owned();
@@ -260,8 +260,8 @@ fn create_new_conversation<'a>(
 /**
  * Switch bot find next bot in DB and create new Client and new conversation
  */
-pub fn switch_bot(
-    data: &mut ConversationInfo,
+pub async fn switch_bot(
+    data: &mut AsyncConversationInfo<'_>,
     bot: &mut CsmlBot,
     next_bot: SwitchBot,
     bot_opt: &mut BotOpt,
@@ -282,7 +282,7 @@ pub fn switch_bot(
         },
     };
 
-    let mut new_bot = bot_opt.search_bot(&mut data.db)?;
+    let mut new_bot = bot_opt.search_bot_async(&mut data.db).await?;
     new_bot.custom_components = bot.custom_components.take();
     new_bot.native_components = bot.native_components.take();
 
@@ -315,7 +315,7 @@ pub fn switch_bot(
             // save message
             data.messages.push(message.clone());
             // send message
-            send_msg_to_callback_url(data, vec![message], 0, false);
+            send_msg_to_callback_url(data, vec![message], 0, false).await;
 
             // setting default step && flow
             data.context.step = ContextStepInfo::Normal("start".to_owned());
@@ -343,12 +343,12 @@ pub fn switch_bot(
         &data.client,
         data.ttl,
         &mut data.db,
-    )?;
+    ).await?;
 
     // and get memories of the new bot form db,
     // clearing the permanent memories form scope of the previous bot
     data.context.current = get_hashmap_from_mem(
-        &internal_use_get_memories(&data.client, &mut data.db)?,
+        &internal_use_get_memories(&data.client, &mut data.db).await?,
         &data.context.flow,
     );
 

@@ -2,7 +2,7 @@
 use crate::future::db_connectors::{is_postgresql, postgresql_connector};
 
 use crate::error_messages::ERROR_DB_SETUP;
-use crate::{CsmlBot, Database, EngineError};
+use crate::{CsmlBot, EngineError};
 use csml_interpreter::data::csml_logs::*;
 use crate::data::AsyncDatabase;
 use crate::models::BotVersion;

@@ -1,6 +1,6 @@
 use actix_web::{post, web, HttpRequest, HttpResponse};
 use awc::Client;
-use csml_engine::data::RunRequest;
+use csml_engine::data::models::RunRequest;
 use csml_engine::start_conversation;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};

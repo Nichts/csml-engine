@@ -1,11 +1,17 @@
+pub mod models;
+
+#[cfg(feature = "async")]
+pub mod future;
+pub mod sync;
+
 #[cfg(feature = "pooled")]
 use diesel::r2d2::{ConnectionManager, PooledConnection, R2D2Connection};
 use crate::{
-    db_connectors,
+    Client,
+    Context,
     encrypt::{decrypt_data, encrypt_data},
-    Client, Context,
 };
-use csml_interpreter::data::{CsmlBot, CsmlFlow, Message, Module, MultiBot};
+use csml_interpreter::data::{CsmlBot, CsmlFlow, Message, Module};
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 use serde::de::StdError;
 use serde::{Deserialize, Serialize};
@@ -13,136 +19,6 @@ use serde_json::Value;
 
 pub const DEBUG: &str = "DEBUG";
 pub const DISABLE_SSL_VERIFY: &str = "DISABLE_SSL_VERIFY";
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct FlowTrigger {
-    pub flow_id: String,
-    pub step_id: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct RunRequest {
-    pub bot: Option<CsmlBot>,
-    pub bot_id: Option<String>,
-    pub version_id: Option<String>,
-    #[serde(alias = "fn_endpoint")]
-    pub apps_endpoint: Option<String>,
-    pub multibot: Option<Vec<MultiBot>>,
-    pub event: CsmlRequest,
-}
-
-impl RunRequest {
-    pub fn get_bot_opt(&self) -> Result<BotOpt, EngineError> {
-        match self.clone() {
-            // Bot
-            RunRequest {
-                bot: Some(mut csml_bot),
-                multibot,
-                ..
-            } => {
-                csml_bot.multibot = multibot;
-
-                Ok(BotOpt::CsmlBot(csml_bot))
-            }
-
-            // version id
-            RunRequest {
-                version_id: Some(version_id),
-                bot_id: Some(bot_id),
-                apps_endpoint,
-                multibot,
-                ..
-            } => Ok(BotOpt::Id {
-                version_id,
-                bot_id,
-                apps_endpoint,
-                multibot,
-            }),
-
-            // get bot by id will search for the last version id
-            RunRequest {
-                bot_id: Some(bot_id),
-                apps_endpoint,
-                multibot,
-                ..
-            } => Ok(BotOpt::BotId {
-                bot_id,
-                apps_endpoint,
-                multibot,
-            }),
-
-            _ => Err(EngineError::Format("Invalid bot_opt format".to_owned())),
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum BotOpt {
-    #[serde(rename = "bot")]
-    CsmlBot(CsmlBot),
-    #[serde(rename = "version_id")]
-    Id {
-        version_id: String,
-        bot_id: String,
-        #[serde(alias = "fn_endpoint")]
-        apps_endpoint: Option<String>,
-        multibot: Option<Vec<MultiBot>>,
-    },
-    #[serde(rename = "bot_id")]
-    BotId {
-        bot_id: String,
-        #[serde(alias = "fn_endpoint")]
-        apps_endpoint: Option<String>,
-        multibot: Option<Vec<MultiBot>>,
-    },
-}
-
-impl BotOpt {
-    pub fn search_bot(&self, db: &mut Database) -> Result<CsmlBot, EngineError> {
-        match self {
-            BotOpt::CsmlBot(csml_bot) => Ok(csml_bot.to_owned()),
-            BotOpt::BotId {
-                bot_id,
-                apps_endpoint,
-                multibot,
-            } => {
-                let bot_version = db_connectors::bot::get_last_bot_version(bot_id, db)?;
-
-                match bot_version {
-                    Some(mut bot_version) => {
-                        bot_version.bot.apps_endpoint = apps_endpoint.to_owned();
-                        bot_version.bot.multibot = multibot.to_owned();
-                        Ok(bot_version.bot)
-                    }
-                    None => Err(EngineError::Manager(format!(
-                        "bot ({}) not found in db",
-                        bot_id
-                    ))),
-                }
-            }
-            BotOpt::Id {
-                version_id,
-                bot_id,
-                apps_endpoint,
-                multibot,
-            } => {
-                let bot_version = db_connectors::bot::get_by_version_id(version_id, bot_id, db)?;
-
-                match bot_version {
-                    Some(mut bot_version) => {
-                        bot_version.bot.apps_endpoint = apps_endpoint.to_owned();
-                        bot_version.bot.multibot = multibot.to_owned();
-                        Ok(bot_version.bot)
-                    }
-                    None => Err(EngineError::Manager(format!(
-                        "bot version ({}) not found in db",
-                        version_id
-                    ))),
-                }
-            }
-        }
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SerializeCsmlBot {
@@ -335,18 +211,6 @@ impl DynamoBot {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CsmlRequest {
-    pub request_id: String,
-    pub client: Client,
-    pub callback_url: Option<String>,
-    pub payload: serde_json::Value,
-    pub metadata: serde_json::Value,
-    pub step_limit: Option<usize>,
-    pub ttl_duration: Option<serde_json::Value>,
-    pub low_data_mode: Option<serde_json::Value>,
-}
-
 #[cfg(feature = "pooled")]
 pub enum Connections<'a, E: R2D2Connection + 'static> {
     Direct(E),
@@ -394,6 +258,7 @@ pub enum Database<'a> {
     None(std::marker::PhantomData<&'a ()>),
 }
 
+#[cfg(feature = "async")]
 pub enum AsyncDatabase<'a> {
     #[cfg(feature = "postgresql-async")]
     Postgresql(AsyncPostgresqlClient<'a>),

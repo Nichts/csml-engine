@@ -47,36 +47,35 @@ pub async fn get_bot_versions(
         None => 25,
     };
     query = query.per_page(limit_per_page);
-    todo!()
-    // let (bot_versions, total_pages) = query.load_and_count_pages::<models::Bot>(db.client.as_mut())?;
-    //
-    // let mut bots = vec![];
-    // for bot_version in bot_versions {
-    //     let csml_bot: SerializeCsmlBot = serde_json::from_str(&bot_version.bot).unwrap();
-    //
-    //     let mut json = serde_json::json!({
-    //         "version_id": bot_version.id,
-    //         "id": csml_bot.id,
-    //         "name": csml_bot.name,
-    //         "default_flow": csml_bot.default_flow,
-    //         "engine_version": bot_version.engine_version,
-    //         "created_at": bot_version.created_at.format("%Y-%m-%dT%H:%M:%S%.fZ").to_string()
-    //     });
-    //
-    //     if let Some(custom_components) = csml_bot.custom_components {
-    //         json["custom_components"] = serde_json::json!(custom_components);
-    //     }
-    //
-    //     bots.push(json);
-    // }
-    //
-    // match pagination_key < total_pages {
-    //     true => {
-    //         let pagination_key = (pagination_key + 1).to_string();
-    //         Ok(serde_json::json!({"bots": bots, "pagination_key": pagination_key}))
-    //     }
-    //     false => Ok(serde_json::json!({ "bots": bots })),
-    // }
+    let (bot_versions, total_pages) = query.load_and_count_pages::<models::Bot>(db.client.as_mut()).await?;
+
+    let mut bots = vec![];
+    for bot_version in bot_versions {
+        let csml_bot: SerializeCsmlBot = serde_json::from_str(&bot_version.bot).unwrap();
+
+        let mut json = serde_json::json!({
+            "version_id": bot_version.id,
+            "id": csml_bot.id,
+            "name": csml_bot.name,
+            "default_flow": csml_bot.default_flow,
+            "engine_version": bot_version.engine_version,
+            "created_at": bot_version.created_at.format("%Y-%m-%dT%H:%M:%S%.fZ").to_string()
+        });
+
+        if let Some(custom_components) = csml_bot.custom_components {
+            json["custom_components"] = serde_json::json!(custom_components);
+        }
+
+        bots.push(json);
+    }
+
+    match pagination_key < total_pages {
+        true => {
+            let pagination_key = (pagination_key + 1).to_string();
+            Ok(serde_json::json!({"bots": bots, "pagination_key": pagination_key}))
+        }
+        false => Ok(serde_json::json!({ "bots": bots })),
+    }
 }
 
 pub async fn get_bot_by_version_id(

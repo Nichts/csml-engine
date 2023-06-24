@@ -1,8 +1,9 @@
 use crate::format_response;
 use csml_engine::start_conversation;
 use serde_json::{json, Value};
+use csml_engine::data::models::RunRequest;
 
-use crate::{routes::RunRequest, Error};
+use crate::Error;
 
 pub fn handler(body: RunRequest) -> Result<serde_json::Value, Error> {
     let mut request = body.event.to_owned();

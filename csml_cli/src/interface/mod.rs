@@ -23,10 +23,9 @@ use crossterm::{
 
 use tui::{backend::CrosstermBackend, Terminal};
 
-use csml_engine::data::{BotOpt, CsmlRequest};
-
 use chat_menu::{draw_run, run_conversation};
 use chat_widget::{RawMessage, StatefulList};
+use csml_engine::data::models::{BotOpt, CsmlRequest};
 use init::draw_init;
 use init_menu::InitMenu;
 use main_menu::{draw_main, MainMenu};

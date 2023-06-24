@@ -12,7 +12,7 @@ pub mod validate;
 
 pub mod clean_data;
 
-use csml_engine::data::RunRequest;
+use csml_engine::data::models::RunRequest;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]

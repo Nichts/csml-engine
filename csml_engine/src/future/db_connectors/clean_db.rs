@@ -2,7 +2,7 @@
 use crate::future::db_connectors::{is_postgresql, postgresql_connector};
 
 use crate::error_messages::ERROR_DB_SETUP;
-use crate::{Database, EngineError};
+use crate::{EngineError};
 use crate::data::AsyncDatabase;
 
 pub async fn delete_expired_data(_db: &mut AsyncDatabase<'_>) -> Result<(), EngineError> {

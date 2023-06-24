@@ -1,6 +1,6 @@
 use crate::routes::tools::validate_api_key;
 use actix_web::{post, web, HttpResponse};
-use csml_engine::data::RunRequest;
+use csml_engine::data::models::RunRequest;
 use csml_engine::start_conversation;
 use serde_json::{json, Value};
 use std::thread;

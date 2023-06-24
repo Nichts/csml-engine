@@ -31,10 +31,8 @@
  * Each method of each module must be fully reimplemented in order to extend the "generic"
  * implementation at the root of db_connectors directory.
  */
-use crate::data::{AsyncDatabase, Database, EngineError};
+use crate::data::{AsyncDatabase, EngineError};
 use crate::error_messages::ERROR_DB_SETUP;
-use csml_interpreter::data::csml_bot::CsmlBot;
-use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "postgresql-async")]
 use self::postgresql as postgresql_connector;
@@ -63,15 +61,6 @@ pub fn is_postgresql() -> bool {
     }
 }
 
-pub fn init_db_sync() -> Result<Database<'static>, EngineError> {
-    #[cfg(feature = "postgresql-async")]
-    if is_postgresql() {
-        return postgresql_connector::init_sync();
-    }
-
-    Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
-}
-
 pub async fn init_db() -> Result<AsyncDatabase<'static>, EngineError> {
     #[cfg(feature = "postgresql-async")]
     if is_postgresql() {
@@ -79,13 +68,4 @@ pub async fn init_db() -> Result<AsyncDatabase<'static>, EngineError> {
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
-}
-
-pub fn make_migrations() -> Result<(), EngineError> {
-    #[cfg(feature = "postgresql-async")]
-    if is_postgresql() {
-        return postgresql::make_migrations();
-    }
-
-    Ok(())
 }

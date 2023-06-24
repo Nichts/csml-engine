@@ -38,7 +38,7 @@ use db_connectors::{
     user,
 };
 use init::*;
-use interpreter_actions::{interpret_step, SwitchBot};
+use interpreter_actions::interpret_step;
 use utils::*;
 
 use chrono::prelude::*;
@@ -46,6 +46,8 @@ use csml_interpreter::data::{
     Context, csml_bot::CsmlBot, csml_flow::CsmlFlow, Hold, IndexInfo, Memory,
 };
 use std::{collections::HashMap, env};
+use data::models::{BotOpt, CsmlRequest};
+use interpreter_actions::models::SwitchBot;
 use models::{BotVersion, BotVersionCreated, DbConversation};
 
 pub fn start_conversation_db(

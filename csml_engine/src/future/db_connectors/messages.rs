@@ -1,11 +1,5 @@
-#[cfg(feature = "dynamo")]
-use crate::future::db_connectors::{dynamodb as dynamodb_connector, is_dynamodb};
-#[cfg(feature = "mongo")]
-use crate::future::db_connectors::{is_mongodb, mongodb as mongodb_connector};
 #[cfg(feature = "postgresql-async")]
 use crate::future::db_connectors::{is_postgresql, postgresql_connector};
-#[cfg(feature = "sqlite")]
-use crate::future::db_connectors::{is_sqlite, sqlite_connector};
 
 use crate::future::db_connectors::utils::*;
 use crate::error_messages::ERROR_DB_SETUP;
