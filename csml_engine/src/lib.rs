@@ -1,7 +1,7 @@
 pub mod data;
 
 #[cfg(feature = "async")]
-mod future;
+pub mod future;
 mod db_connectors;
 mod encrypt;
 mod error_messages;
