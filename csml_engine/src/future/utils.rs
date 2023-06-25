@@ -310,7 +310,13 @@ pub async fn search_flow<'a>(
                 }
             }
 
-            match random_flows.choose(&mut rand::thread_rng()) {
+            // Thread rng is not send so we have to drop it right away
+            let random_flow = {
+                let mut rng = &mut rand::thread_rng();
+                random_flows.choose(rng)
+            };
+
+            match random_flow {
                 Some(flow) => {
                     delete_state_key(client, "hold", "position", db).await?;
                     Ok((flow, "start".to_owned()))
@@ -335,7 +341,13 @@ pub async fn search_flow<'a>(
                 }
             }
 
-            match random_flows.choose(&mut rand::thread_rng()) {
+            // Thread rng is not send so we have to drop it right away
+            let random_flow = {
+                let mut rng = &mut rand::thread_rng();
+                random_flows.choose(rng)
+            };
+
+            match random_flow {
                 Some(flow) => {
                     delete_state_key(client, "hold", "position", db).await?;
                     Ok((flow, "start".to_owned()))
