@@ -35,8 +35,7 @@ use csml_interpreter::data::{
     csml_bot::CsmlBot, Hold, IndexInfo,
 };
 use std::{collections::HashMap, env};
-use std::future::Future;
-use std::pin::Pin;
+use futures::future::{Future, BoxFuture, FutureExt};
 use crate::models::{BotVersion, BotVersionCreated, DbConversation};
 use crate::data::models::{BotOpt, CsmlRequest};
 
@@ -147,8 +146,8 @@ fn check_switch_bot<'a>(
     bot: &'a mut CsmlBot,
     bot_opt: &'a mut BotOpt,
     event: &'a mut Event,
-) -> Pin<Box<dyn Future<Output=Result<serde_json::Map<String, serde_json::Value>, EngineError>> + 'a>> {
-    Box::pin(async move {
+) -> BoxFuture<'a, Result<serde_json::Map<String, serde_json::Value>, EngineError>> {
+    async move {
         match result {
             Ok((mut messages, Some(next_bot))) => {
                 if let Err(err) = switch_bot(data, bot, next_bot, bot_opt, event).await {
@@ -184,7 +183,7 @@ fn check_switch_bot<'a>(
                 Err(err)
             }
         }
-    })
+    }.boxed()
 }
 
 /**
