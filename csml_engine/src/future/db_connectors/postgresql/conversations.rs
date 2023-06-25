@@ -162,11 +162,12 @@ pub async fn get_client_conversations(
         None => 1,
     };
 
+    let client = client.to_owned();
     let mut query = csml_conversations::table
         .order_by(csml_conversations::updated_at.desc())
-        .filter(csml_conversations::bot_id.eq(&client.bot_id))
-        .filter(csml_conversations::channel_id.eq(&client.channel_id))
-        .filter(csml_conversations::user_id.eq(&client.user_id))
+        .filter(csml_conversations::bot_id.eq(client.bot_id))
+        .filter(csml_conversations::channel_id.eq(client.channel_id))
+        .filter(csml_conversations::user_id.eq(client.user_id))
         .paginate(pagination_key);
 
     let limit_per_page = match limit {

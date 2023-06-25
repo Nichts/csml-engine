@@ -225,14 +225,14 @@ pub async fn get_client_messages(
     get_client_messages_new(client, limit, pagination_key, from_date, to_date, None, &mut db).await
 }
 
-pub async fn get_client_messages_new(
-    client: &Client,
+pub async fn get_client_messages_new<'conn, 'a: 'conn>(
+    client: &'a Client,
     limit: Option<i64>,
     pagination_key: Option<String>,
     from_date: Option<i64>,
     to_date: Option<i64>,
     conversation_id: Option<String>,
-    db: &mut AsyncDatabase<'_>,
+    db: &'a mut AsyncDatabase<'conn>,
 ) -> Result<serde_json::Value, EngineError> {
     init_logger();
 

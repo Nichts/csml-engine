@@ -1,14 +1,14 @@
 use diesel::pg::Pg;
-use diesel::query_builder::{AstPass, Query, QueryFragment};
+use diesel::query_builder::{AstPass, Query, QueryFragment, QueryId};
 use diesel::QueryResult;
 use diesel::sql_types::BigInt;
 use diesel_async::{AsyncPgConnection, RunQueryDsl, methods::LoadQuery};
 
-pub trait Paginate: Sized {
+pub trait Paginate: Sized + Send {
     fn paginate(self, page: i64) -> Paginated<Self>;
 }
 
-impl<T> Paginate for T {
+impl<T> Paginate for T where T: Send {
     fn paginate(self, page: i64) -> Paginated<Self> {
         Paginated {
             query: self,
@@ -20,14 +20,19 @@ impl<T> Paginate for T {
 
 const DEFAULT_PER_PAGE: i64 = 10;
 
-#[derive(Debug, Clone, Copy, QueryId)]
-pub struct Paginated<T> {
+#[derive(Debug, Clone, Copy)]
+pub struct Paginated<T> where T: Send {
     query: T,
     offset: i64,
     per_page: i64,
 }
 
-impl<'a, T: 'a> Paginated<T> {
+impl<T> QueryId for Paginated<T> where T: Send + 'static {
+    type QueryId = T;
+    const HAS_STATIC_QUERY_ID: bool = false;
+}
+
+impl<'a, T: 'a> Paginated<T> where T: Send {
     pub fn per_page(self, per_page: i64) -> Self {
         let old_page = self.offset / self.per_page + 1;
         Paginated {
@@ -39,7 +44,7 @@ impl<'a, T: 'a> Paginated<T> {
 
     pub async fn load_and_count_pages<U>(
         self,
-        conn: &mut AsyncPgConnection,
+        conn: &'a mut AsyncPgConnection,
     ) -> QueryResult<(Vec<U>, i64)>
     where
         Self: LoadQuery<'a, AsyncPgConnection, (U, i64)>,
@@ -54,13 +59,13 @@ impl<'a, T: 'a> Paginated<T> {
     }
 }
 
-impl<T: Query> Query for Paginated<T> {
+impl<T: Query + Send> Query for Paginated<T> {
     type SqlType = (T::SqlType, BigInt);
 }
 
 impl<T> QueryFragment<Pg> for Paginated<T>
 where
-    T: QueryFragment<Pg>,
+    T: QueryFragment<Pg> + Send,
 {
     fn walk_ast<'b>(&'b self, mut out: AstPass<'_, 'b, Pg>) -> QueryResult<()> {
         out.push_sql("SELECT *, COUNT(*) OVER () FROM (");

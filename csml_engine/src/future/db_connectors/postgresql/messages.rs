@@ -76,9 +76,9 @@ pub async fn delete_user_messages(client: &Client, db: &mut AsyncPostgresqlClien
     Ok(())
 }
 
-pub async fn get_client_messages(
-    client: &Client,
-    db: &mut AsyncPostgresqlClient<'_>,
+pub async fn get_client_messages<'conn, 'a: 'conn>(
+    client: &'a Client,
+    db: &'a mut AsyncPostgresqlClient<'conn>,
     limit: Option<i64>,
     pagination_key: Option<String>,
     from_date: Option<i64>,
@@ -127,13 +127,14 @@ pub async fn get_client_messages(
     }
 }
 
-async fn get_messages_without_conversation_filter(
+pub(crate) async fn get_messages_without_conversation_filter(
     client: &Client,
     db: &mut AsyncPostgresqlClient<'_>,
     limit: Option<i64>,
     from_date: Option<i64>,
     to_date: Option<i64>, pagination_key: i64
 ) -> Result<(Vec<(models::Conversation, models::Message)>, i64), EngineError> {
+    let client = client.to_owned();
     let res = match from_date {
         Some(from_date) => {
             let from_date = NaiveDateTime::from_timestamp_opt(from_date, 0).ok_or(
@@ -147,9 +148,9 @@ async fn get_messages_without_conversation_filter(
             };
 
             let mut query = csml_conversations::table
-                .filter(csml_conversations::bot_id.eq(&client.bot_id))
-                .filter(csml_conversations::channel_id.eq(&client.channel_id))
-                .filter(csml_conversations::user_id.eq(&client.user_id))
+                .filter(csml_conversations::bot_id.eq(client.bot_id))
+                .filter(csml_conversations::channel_id.eq(client.channel_id))
+                .filter(csml_conversations::user_id.eq(client.user_id))
                 .inner_join(csml_messages::table)
                 .filter(csml_messages::created_at.ge(from_date))
                 .filter(csml_messages::created_at.le(to_date))
@@ -165,9 +166,9 @@ async fn get_messages_without_conversation_filter(
         }
         None => {
             let mut query = csml_conversations::table
-                .filter(csml_conversations::bot_id.eq(&client.bot_id))
-                .filter(csml_conversations::channel_id.eq(&client.channel_id))
-                .filter(csml_conversations::user_id.eq(&client.user_id))
+                .filter(csml_conversations::bot_id.eq(client.bot_id))
+                .filter(csml_conversations::channel_id.eq(client.channel_id))
+                .filter(csml_conversations::user_id.eq(client.user_id))
                 .inner_join(csml_messages::table)
                 .select((csml_conversations::all_columns, csml_messages::all_columns))
                 .order_by(csml_messages::created_at.desc())
@@ -192,6 +193,7 @@ async fn get_messages_with_conversation_filter(
     conversation_id: String,
 ) -> Result<(Vec<(models::Conversation, models::Message)>, i64), EngineError> {
     let id = Uuid::parse_str(&conversation_id)?;
+    let client = client.to_owned();
     let res = match from_date {
         Some(from_date) => {
             let from_date = NaiveDateTime::from_timestamp_opt(from_date, 0).ok_or(
@@ -205,10 +207,10 @@ async fn get_messages_with_conversation_filter(
             };
 
             let mut query = csml_conversations::table
-                .filter(csml_conversations::bot_id.eq(&client.bot_id))
-                .filter(csml_conversations::channel_id.eq(&client.channel_id))
-                .filter(csml_conversations::user_id.eq(&client.user_id))
-                .filter(csml_conversations::id.eq(&id))
+                .filter(csml_conversations::bot_id.eq(client.bot_id))
+                .filter(csml_conversations::channel_id.eq(client.channel_id))
+                .filter(csml_conversations::user_id.eq(client.user_id))
+                .filter(csml_conversations::id.eq(id))
                 .inner_join(csml_messages::table)
                 .filter(csml_messages::created_at.ge(from_date))
                 .filter(csml_messages::created_at.le(to_date))
@@ -224,10 +226,10 @@ async fn get_messages_with_conversation_filter(
         }
         None => {
             let mut query = csml_conversations::table
-                .filter(csml_conversations::bot_id.eq(&client.bot_id))
-                .filter(csml_conversations::channel_id.eq(&client.channel_id))
-                .filter(csml_conversations::user_id.eq(&client.user_id))
-                .filter(csml_conversations::id.eq(&id))
+                .filter(csml_conversations::bot_id.eq(client.bot_id))
+                .filter(csml_conversations::channel_id.eq(client.channel_id))
+                .filter(csml_conversations::user_id.eq(client.user_id))
+                .filter(csml_conversations::id.eq(id))
                 .inner_join(csml_messages::table)
                 .select((csml_conversations::all_columns, csml_messages::all_columns))
                 .order_by(csml_messages::created_at.desc())

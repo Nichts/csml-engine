@@ -47,9 +47,9 @@ pub async fn add_messages_bulk(
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
 }
 
-pub async fn get_client_messages(
-    client: &Client,
-    db: &mut AsyncDatabase<'_>,
+pub async fn get_client_messages<'conn, 'a: 'conn>(
+    client: &'a Client,
+    db: &'a mut AsyncDatabase<'conn>,
     limit: Option<i64>,
     pagination_key: Option<String>,
     from_date: Option<i64>,

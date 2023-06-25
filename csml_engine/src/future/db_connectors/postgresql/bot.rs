@@ -37,6 +37,7 @@ pub async fn get_bot_versions(
         None => 1,
     };
 
+    let bot_id = bot_id.to_owned();
     let mut query = cmsl_bot_versions::table
         .order_by(cmsl_bot_versions::updated_at.desc())
         .filter(cmsl_bot_versions::bot_id.eq(bot_id))

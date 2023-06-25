@@ -50,7 +50,7 @@ pub mod utils;
 pub mod db_test;
 
 #[cfg(feature = "postgresql-async")]
-mod postgresql;
+pub(crate) mod postgresql;
 
 
 #[cfg(feature = "postgresql-async")]
