@@ -49,6 +49,7 @@ use std::{collections::HashMap, env};
 use data::models::{BotOpt, CsmlRequest};
 use interpreter_actions::models::SwitchBot;
 use models::{BotVersion, BotVersionCreated, DbConversation};
+use crate::data::filter::ClientMessageFilter;
 
 pub fn start_conversation_db(
     request: CsmlRequest,
@@ -229,23 +230,27 @@ pub fn get_client_messages(
     to_date: Option<i64>,
 ) -> Result<serde_json::Value, EngineError> {
     let mut db = init_db()?;
-    let limit = limit.map(|v| std::cmp::min(v, 25));
+    let limit = limit.map(|v| std::cmp::min(v, 25)).unwrap_or(25);
 
-    get_client_messages_new(client, limit, pagination_key, from_date, to_date, None, &mut db)
+    let filter = ClientMessageFilter {
+        client,
+        limit,
+        pagination_key,
+        from_date,
+        to_date,
+        conversation_id: None,
+    };
+
+    get_client_messages_filtered(&mut db, filter)
 }
 
-pub fn get_client_messages_new(
-    client: &Client,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
-    from_date: Option<i64>,
-    to_date: Option<i64>,
-    conversation_id: Option<String>,
+pub fn get_client_messages_filtered(
     db: &mut Database,
+    filter: ClientMessageFilter<'_>
 ) -> Result<serde_json::Value, EngineError> {
     init_logger();
 
-    messages::get_client_messages(client, db, limit, pagination_key, from_date, to_date, conversation_id)
+    messages::get_client_messages(db, filter)
 }
 
 pub fn get_client_conversations(

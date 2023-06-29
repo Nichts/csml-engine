@@ -3,6 +3,7 @@ pub mod models;
 #[cfg(feature = "async")]
 pub mod future;
 pub mod sync;
+pub mod filter;
 
 #[cfg(feature = "pooled")]
 use diesel::r2d2::{ConnectionManager, PooledConnection, R2D2Connection};

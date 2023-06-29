@@ -4,6 +4,7 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::{db_connectors::*, init_db, make_migrations, Client, Context, ConversationInfo};
+    use crate::data::filter::ClientMessageFilterBuilder;
 
     fn get_client() -> Client {
         Client {
@@ -122,8 +123,11 @@ mod tests {
 
         messages::add_messages_bulk(&mut data, msgs, 0, "SEND").unwrap();
 
+        let mut filter = ClientMessageFilterBuilder::new(&client);
+        filter.limit(1);
+
         let response =
-            messages::get_client_messages(&client, &mut data.db, Some(1), None, None, None, None)
+            messages::get_client_messages(&mut data.db, filter.build())
                 .unwrap();
 
         let received_msgs: Vec<serde_json::Value> =
@@ -140,8 +144,11 @@ mod tests {
 
         user::delete_client(&client, &mut data.db).unwrap();
 
+        let mut filter = ClientMessageFilterBuilder::new(&client);
+        filter.limit(2);
+
         let response =
-            messages::get_client_messages(&client, &mut data.db, Some(2), None, None, None, None)
+            messages::get_client_messages(&mut data.db, filter.build())
                 .unwrap();
 
         let received_msgs: Vec<serde_json::Value> =

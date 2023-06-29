@@ -14,6 +14,7 @@ use super::{
 };
 use chrono::NaiveDateTime;
 use uuid::Uuid;
+use crate::data::filter::ClientMessageFilter;
 
 pub async fn add_messages_bulk(
     data: &mut AsyncConversationInfo<'_>,
@@ -77,14 +78,11 @@ pub async fn delete_user_messages(client: &Client, db: &mut AsyncPostgresqlClien
 }
 
 pub async fn get_client_messages<'conn, 'a: 'conn>(
-    client: &'a Client,
     db: &'a mut AsyncPostgresqlClient<'conn>,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
-    from_date: Option<i64>,
-    to_date: Option<i64>,
-    conversation_id: Option<String>,
+    filter: ClientMessageFilter<'a>,
 ) -> Result<serde_json::Value, EngineError> {
+    let ClientMessageFilter { client, limit, pagination_key, from_date, to_date, conversation_id } = filter;
+
     let pagination_key = match pagination_key {
         Some(paginate) => paginate.parse::<i64>().unwrap_or(1),
         None => 1,
@@ -130,7 +128,7 @@ pub async fn get_client_messages<'conn, 'a: 'conn>(
 pub(crate) async fn get_messages_without_conversation_filter(
     client: &Client,
     db: &mut AsyncPostgresqlClient<'_>,
-    limit: Option<i64>,
+    limit_per_page: i64,
     from_date: Option<i64>,
     to_date: Option<i64>, pagination_key: i64
 ) -> Result<(Vec<(models::Conversation, models::Message)>, i64), EngineError> {
@@ -159,7 +157,6 @@ pub(crate) async fn get_messages_without_conversation_filter(
                 .then_order_by(csml_messages::message_order.desc())
                 .paginate(pagination_key);
 
-            let limit_per_page = limit.unwrap_or(25);
             query = query.per_page(limit_per_page);
 
             query.load_and_count_pages(db.client.as_mut()).await?
@@ -175,7 +172,6 @@ pub(crate) async fn get_messages_without_conversation_filter(
                 .then_order_by(csml_messages::message_order.desc())
                 .paginate(pagination_key);
 
-            let limit_per_page = limit.unwrap_or(25);
             query = query.per_page(limit_per_page);
 
             query.load_and_count_pages(db.client.as_mut()).await?
@@ -187,7 +183,7 @@ pub(crate) async fn get_messages_without_conversation_filter(
 async fn get_messages_with_conversation_filter(
     client: &Client,
     db: &mut AsyncPostgresqlClient<'_>,
-    limit: Option<i64>,
+    limit_per_page: i64,
     from_date: Option<i64>,
     to_date: Option<i64>, pagination_key: i64,
     conversation_id: String,
@@ -219,7 +215,6 @@ async fn get_messages_with_conversation_filter(
                 .then_order_by(csml_messages::message_order.desc())
                 .paginate(pagination_key);
 
-            let limit_per_page = limit.unwrap_or(25);
             query = query.per_page(limit_per_page);
 
             query.load_and_count_pages(db.client.as_mut()).await?
@@ -236,7 +231,6 @@ async fn get_messages_with_conversation_filter(
                 .then_order_by(csml_messages::message_order.desc())
                 .paginate(pagination_key);
 
-            let limit_per_page = limit.unwrap_or(25);
             query = query.per_page(limit_per_page);
 
             query.load_and_count_pages(db.client.as_mut()).await?

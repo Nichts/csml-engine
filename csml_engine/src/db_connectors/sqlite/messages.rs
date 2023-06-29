@@ -12,6 +12,7 @@ use super::{
     schema::{csml_conversations, csml_messages},
 };
 use chrono::NaiveDateTime;
+use crate::data::filter::ClientMessageFilter;
 
 pub fn add_messages_bulk(
     data: &mut ConversationInfo,
@@ -74,66 +75,19 @@ pub fn delete_user_messages(client: &Client, db: &mut SqliteClient) -> Result<()
 }
 
 pub fn get_client_messages(
-    client: &Client,
     db: &mut SqliteClient,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
-    from_date: Option<i64>,
-    to_date: Option<i64>,
-    conversation_id: Option<String>
+    filter: ClientMessageFilter,
 ) -> Result<serde_json::Value, EngineError> {
+    let ClientMessageFilter { client, limit, pagination_key, from_date, to_date, conversation_id } = filter;
+
     let pagination_key = match pagination_key {
         Some(paginate) => paginate.parse::<i64>().unwrap_or(1),
         None => 1,
     };
 
-    let (conversation_with_messages, total_pages) = match from_date {
-        Some(from_date) => {
-            let from_date = NaiveDateTime::from_timestamp_opt(from_date, 0).unwrap();
-            let to_date = match to_date {
-                Some(to_date) => NaiveDateTime::from_timestamp_opt(to_date, 0).unwrap(),
-                None => chrono::Utc::now().naive_utc(),
-            };
-
-            let mut query = csml_conversations::table
-                .filter(csml_conversations::bot_id.eq(&client.bot_id))
-                .filter(csml_conversations::channel_id.eq(&client.channel_id))
-                .filter(csml_conversations::user_id.eq(&client.user_id))
-                .inner_join(csml_messages::table)
-                .filter(csml_messages::created_at.ge(from_date))
-                .filter(csml_messages::created_at.le(to_date))
-                .select((csml_conversations::all_columns, csml_messages::all_columns))
-                .order_by(csml_messages::created_at.desc())
-                .then_order_by(csml_messages::message_order.desc())
-                .paginate(pagination_key);
-
-            let limit_per_page = match limit {
-                Some(limit) => std::cmp::min(limit, 25),
-                None => 25,
-            };
-            query = query.per_page(limit_per_page);
-
-            query.load_and_count_pages::<(models::Conversation, models::Message)>(db.client.as_mut())?
-        }
-        None => {
-            let mut query = csml_conversations::table
-                .filter(csml_conversations::bot_id.eq(&client.bot_id))
-                .filter(csml_conversations::channel_id.eq(&client.channel_id))
-                .filter(csml_conversations::user_id.eq(&client.user_id))
-                .inner_join(csml_messages::table)
-                .select((csml_conversations::all_columns, csml_messages::all_columns))
-                .order_by(csml_messages::created_at.desc())
-                .then_order_by(csml_messages::message_order.desc())
-                .paginate(pagination_key);
-
-            let limit_per_page = match limit {
-                Some(limit) => std::cmp::min(limit, 25),
-                None => 25,
-            };
-            query = query.per_page(limit_per_page);
-
-            query.load_and_count_pages::<(models::Conversation, models::Message)>(db.client.as_mut())?
-        }
+    let (conversation_with_messages, total_pages) = match conversation_id {
+        None => get_messages_without_conversation_filter(&client, db, limit, from_date, to_date, pagination_key)?,
+        Some(conv_id) => get_messages_with_conversation_filter(&client, db, limit, from_date, to_date, pagination_key, conv_id)?
     };
 
     let (_, messages): (Vec<_>, Vec<_>) = conversation_with_messages.into_iter().unzip();
@@ -171,7 +125,7 @@ pub fn get_client_messages(
 fn get_messages_without_conversation_filter(
     client: &Client,
     db: &mut SqliteClient,
-    limit: Option<i64>,
+    limit_per_page: i64,
     from_date: Option<i64>,
     to_date: Option<i64>, pagination_key: i64
 ) -> Result<(Vec<(models::Conversation, models::Message)>, i64), EngineError> {
@@ -199,7 +153,6 @@ fn get_messages_without_conversation_filter(
                 .then_order_by(csml_messages::message_order.desc())
                 .paginate(pagination_key);
 
-            let limit_per_page = limit.unwrap_or(25);
             query = query.per_page(limit_per_page);
 
             query.load_and_count_pages(db.client.as_mut())?
@@ -215,7 +168,6 @@ fn get_messages_without_conversation_filter(
                 .then_order_by(csml_messages::message_order.desc())
                 .paginate(pagination_key);
 
-            let limit_per_page = limit.unwrap_or(25);
             query = query.per_page(limit_per_page);
 
             query.load_and_count_pages(db.client.as_mut())?
@@ -227,7 +179,7 @@ fn get_messages_without_conversation_filter(
 fn get_messages_with_conversation_filter(
     client: &Client,
     db: &mut SqliteClient,
-    limit: Option<i64>,
+    limit_per_page: i64,
     from_date: Option<i64>,
     to_date: Option<i64>, pagination_key: i64,
     conversation_id: String,
@@ -258,7 +210,6 @@ fn get_messages_with_conversation_filter(
                 .then_order_by(csml_messages::message_order.desc())
                 .paginate(pagination_key);
 
-            let limit_per_page = limit.unwrap_or(25);
             query = query.per_page(limit_per_page);
 
             query.load_and_count_pages(db.client.as_mut())?
@@ -275,7 +226,6 @@ fn get_messages_with_conversation_filter(
                 .then_order_by(csml_messages::message_order.desc())
                 .paginate(pagination_key);
 
-            let limit_per_page = limit.unwrap_or(25);
             query = query.per_page(limit_per_page);
 
             query.load_and_count_pages(db.client.as_mut())?

@@ -55,8 +55,6 @@ pub mod utils;
 
 pub mod db_test;
 
-use crate::Client;
-
 #[cfg(feature = "dynamo")]
 mod dynamodb;
 #[cfg(feature = "mongo")]

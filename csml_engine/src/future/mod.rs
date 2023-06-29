@@ -35,7 +35,8 @@ use csml_interpreter::data::{
     csml_bot::CsmlBot, Hold, IndexInfo,
 };
 use std::{collections::HashMap, env};
-use futures::future::{Future, BoxFuture, FutureExt};
+use futures::future::{BoxFuture, FutureExt};
+use crate::data::filter::ClientMessageFilter;
 use crate::models::{BotVersion, BotVersionCreated, DbConversation};
 use crate::data::models::{BotOpt, CsmlRequest};
 
@@ -220,23 +221,28 @@ pub async fn get_client_messages(
     to_date: Option<i64>,
 ) -> Result<serde_json::Value, EngineError> {
     let mut db = init_db().await?;
-    let limit = limit.map(|v| std::cmp::min(v, 25));
+    let limit = limit.map(|v| std::cmp::min(v, 25)).unwrap_or(25);
 
-    get_client_messages_new(client, limit, pagination_key, from_date, to_date, None, &mut db).await
+    let filter = ClientMessageFilter {
+        client,
+        limit,
+        pagination_key,
+        from_date,
+        to_date,
+        conversation_id: None,
+    };
+
+
+    get_client_messages_filtered(&mut db, filter).await
 }
 
-pub async fn get_client_messages_new<'conn, 'a: 'conn>(
-    client: &'a Client,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
-    from_date: Option<i64>,
-    to_date: Option<i64>,
-    conversation_id: Option<String>,
+pub async fn get_client_messages_filtered<'conn, 'a: 'conn>(
     db: &'a mut AsyncDatabase<'conn>,
+    filter: ClientMessageFilter<'a>
 ) -> Result<serde_json::Value, EngineError> {
     init_logger();
 
-    messages::get_client_messages(client, db, limit, pagination_key, from_date, to_date, conversation_id).await
+    messages::get_client_messages(db, filter).await
 }
 
 pub async fn get_client_conversations(

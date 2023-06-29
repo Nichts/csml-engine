@@ -3,8 +3,9 @@ use crate::future::db_connectors::{is_postgresql, postgresql_connector};
 
 use crate::future::db_connectors::utils::*;
 use crate::error_messages::ERROR_DB_SETUP;
-use crate::{Client, AsyncConversationInfo, AsyncDatabase, EngineError};
+use crate::{AsyncConversationInfo, AsyncDatabase, EngineError};
 use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
+use crate::data::filter::ClientMessageFilter;
 
 pub async fn add_messages_bulk(
     data: &mut AsyncConversationInfo<'_>,
@@ -48,18 +49,14 @@ pub async fn add_messages_bulk(
 }
 
 pub async fn get_client_messages<'conn, 'a: 'conn>(
-    client: &'a Client,
     db: &'a mut AsyncDatabase<'conn>,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
-    from_date: Option<i64>,
-    to_date: Option<i64>,
-    conversation_id: Option<String>,
+    filter: ClientMessageFilter<'a>,
 ) -> Result<serde_json::Value, EngineError> {
     csml_logger(
         CsmlLog::new(None, None, None, "db call get messages".to_string()),
         LogLvl::Info,
     );
+    let ClientMessageFilter { client, .. } = filter;
     csml_logger(
         CsmlLog::new(Some(client), None, None, "db call get messages".to_string()),
         LogLvl::Debug,
@@ -70,13 +67,7 @@ pub async fn get_client_messages<'conn, 'a: 'conn>(
         let db = postgresql_connector::get_db(db)?;
 
         return postgresql_connector::messages::get_client_messages(
-            client,
-            db,
-            limit,
-            pagination_key,
-            from_date,
-            to_date,
-            conversation_id,
+            db, filter
         ).await;
     }
 

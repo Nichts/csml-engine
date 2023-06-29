@@ -9,8 +9,9 @@ use crate::db_connectors::{is_sqlite, sqlite_connector};
 
 use crate::db_connectors::utils::*;
 use crate::error_messages::ERROR_DB_SETUP;
-use crate::{Client, ConversationInfo, Database, EngineError};
+use crate::{ConversationInfo, Database, EngineError};
 use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
+use crate::data::filter::ClientMessageFilter;
 
 pub fn add_messages_bulk(
     data: &mut ConversationInfo,
@@ -93,18 +94,14 @@ pub fn add_messages_bulk(
 }
 
 pub fn get_client_messages(
-    client: &Client,
     db: &mut Database,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
-    from_date: Option<i64>,
-    to_date: Option<i64>,
-    conversation_id: Option<String>,
+    filter: ClientMessageFilter<'_>,
 ) -> Result<serde_json::Value, EngineError> {
     csml_logger(
         CsmlLog::new(None, None, None, "db call get messages".to_string()),
         LogLvl::Info,
     );
+    let ClientMessageFilter { client, .. } = filter;
     csml_logger(
         CsmlLog::new(Some(client), None, None, "db call get messages".to_string()),
         LogLvl::Debug,
@@ -156,13 +153,7 @@ pub fn get_client_messages(
         let db = postgresql_connector::get_db(db)?;
 
         return postgresql_connector::messages::get_client_messages(
-            client,
-            db,
-            limit,
-            pagination_key,
-            from_date,
-            to_date,
-            conversation_id,
+            db, filter
         );
     }
 
@@ -171,13 +162,7 @@ pub fn get_client_messages(
         let db = sqlite_connector::get_db(db)?;
 
         return sqlite_connector::messages::get_client_messages(
-            client,
-            db,
-            limit,
-            pagination_key,
-            from_date,
-            to_date,
-            conversation_id,
+            db, filter
         );
     }
 
