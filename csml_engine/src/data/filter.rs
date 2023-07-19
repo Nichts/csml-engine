@@ -1,11 +1,10 @@
 use csml_interpreter::data::Client;
-use derive_builder::Builder;
+use typed_builder::TypedBuilder;
 
-#[derive(Builder, Debug)]
-#[builder(custom_constructor, build_fn(private, name = "fallible_build"))]
+#[derive(TypedBuilder, Debug)]
 pub struct ClientMessageFilter<'a> {
     pub(crate) client: &'a Client,
-    #[builder(default = "25")]
+    #[builder(default = 25)]
     pub(crate) limit: i64,
     #[builder(setter(into), default)]
     pub(crate) pagination_key: Option<String>,
@@ -17,21 +16,6 @@ pub struct ClientMessageFilter<'a> {
     pub(crate) conversation_id: Option<String>,
 }
 
-impl<'a> ClientMessageFilterBuilder<'a> {
-    pub fn new(client: &'a Client) -> ClientMessageFilterBuilder<'a> {
-        let mut builder = Self {
-            client: Some(client),
-            ..Self::create_empty()
-        };
-        builder.client(client);
-        builder
-    }
-
-    pub fn build(&self) -> ClientMessageFilter {
-        self.fallible_build().expect("All required fields set at initialization")
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -39,7 +23,7 @@ mod tests {
     #[test]
     fn test_message_filter() {
         let client = Client::new("Testing".to_string(), String::default(), String::default());
-        let empty_filter = ClientMessageFilterBuilder::new(&client);
+        let empty_filter = ClientMessageFilter::builder().client(&client);
         let empty_filter = empty_filter.build();
 
         println!("Empty Filter: {empty_filter:?}");
@@ -50,8 +34,8 @@ mod tests {
             ..
         } if bot_id == "Testing" ));
 
-        let mut set_limit = ClientMessageFilterBuilder::new(&client);
-        set_limit.limit(13371337);
+        let set_limit = ClientMessageFilter::builder().client(&client);
+        let set_limit = set_limit.limit(13371337);
         let set_limit = set_limit.build();
 
         println!("Set Limit Filter: {set_limit:?}");
