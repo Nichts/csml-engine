@@ -1,11 +1,11 @@
 #[cfg(feature = "postgresql-async")]
 use crate::future::db_connectors::{is_postgresql, postgresql_connector};
 
-use crate::future::db_connectors::utils::*;
+use crate::data::filter::ClientMessageFilter;
 use crate::error_messages::ERROR_DB_SETUP;
+use crate::future::db_connectors::utils::*;
 use crate::{AsyncConversationInfo, AsyncDatabase, EngineError};
 use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
-use crate::data::filter::ClientMessageFilter;
 
 pub async fn add_messages_bulk(
     data: &mut AsyncConversationInfo<'_>,
@@ -42,7 +42,8 @@ pub async fn add_messages_bulk(
             interaction_order,
             direction,
             expires_at,
-        ).await;
+        )
+        .await;
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
@@ -66,9 +67,7 @@ pub async fn get_client_messages<'conn, 'a: 'conn>(
     if is_postgresql() {
         let db = postgresql_connector::get_db(db)?;
 
-        return postgresql_connector::messages::get_client_messages(
-            db, filter
-        ).await;
+        return postgresql_connector::messages::get_client_messages(db, filter).await;
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))

@@ -1,5 +1,5 @@
-use serde_derive::{Deserialize, Serialize};
 use csml_interpreter::data::{Client, CsmlBot};
+use serde_derive::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DbConversation {

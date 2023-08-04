@@ -1,7 +1,7 @@
+use crate::models::DbConversation;
 use crate::{Client, EngineError, MongoDbClient};
 use bson::{doc, Document};
 use chrono::SecondsFormat;
-use crate::models::DbConversation;
 
 fn format_conversation_struct(
     conversation: bson::document::Document,
@@ -247,7 +247,8 @@ pub fn get_client_conversations(
             conversations.pop();
             match conversations.last() {
                 Some(last) => {
-                    let pagination_key = base64::engine::general_purpose::STANDARD.encode(last["version_id"].clone().to_string());
+                    let pagination_key = base64::engine::general_purpose::STANDARD
+                        .encode(last["version_id"].clone().to_string());
 
                     Ok(
                         serde_json::json!({"conversations": conversations, "pagination_key": pagination_key}),

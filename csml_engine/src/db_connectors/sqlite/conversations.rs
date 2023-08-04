@@ -1,8 +1,8 @@
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 
+use crate::models::DbConversation;
 use crate::{Client, EngineError, SqliteClient};
 use chrono::NaiveDateTime;
-use crate::models::DbConversation;
 
 use super::{models, pagination::*, schema::csml_conversations};
 

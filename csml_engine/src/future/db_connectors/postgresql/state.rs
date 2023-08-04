@@ -1,9 +1,9 @@
 use diesel::{ExpressionMethods, QueryDsl};
-use diesel_async::{RunQueryDsl};
+use diesel_async::RunQueryDsl;
 
 use crate::{
     encrypt::{decrypt_data, encrypt_data},
-    Client, EngineError, AsyncPostgresqlClient,
+    AsyncPostgresqlClient, Client, EngineError,
 };
 
 use super::{models, schema::csml_states};
@@ -23,7 +23,8 @@ pub async fn delete_state_key(
             .filter(csml_states::type_.eq(type_))
             .filter(csml_states::key.eq(key)),
     )
-    .execute(db.client.as_mut()).await?;
+    .execute(db.client.as_mut())
+    .await?;
 
     Ok(())
 }
@@ -40,7 +41,8 @@ pub async fn get_state_key(
         .filter(csml_states::user_id.eq(&client.user_id))
         .filter(csml_states::type_.eq(type_))
         .filter(csml_states::key.eq(key))
-        .get_result(db.client.as_mut()).await;
+        .get_result(db.client.as_mut())
+        .await;
 
     match state {
         Ok(state) => {
@@ -61,7 +63,8 @@ pub async fn get_current_state(
         .filter(csml_states::user_id.eq(&client.user_id))
         .filter(csml_states::type_.eq("hold"))
         .filter(csml_states::key.eq("position"))
-        .get_result(db.client.as_mut()).await?;
+        .get_result(db.client.as_mut())
+        .await?;
 
     let current_state = serde_json::json!({
         "client": {
@@ -109,12 +112,16 @@ pub async fn set_state_items(
 
     diesel::insert_into(csml_states::table)
         .values(&new_states)
-        .execute(db.client.as_mut()).await?;
+        .execute(db.client.as_mut())
+        .await?;
 
     Ok(())
 }
 
-pub async fn delete_user_state(client: &Client, db: &mut AsyncPostgresqlClient<'_>) -> Result<(), EngineError> {
+pub async fn delete_user_state(
+    client: &Client,
+    db: &mut AsyncPostgresqlClient<'_>,
+) -> Result<(), EngineError> {
     diesel::delete(
         csml_states::table
             .filter(csml_states::bot_id.eq(&client.bot_id))
@@ -128,7 +135,10 @@ pub async fn delete_user_state(client: &Client, db: &mut AsyncPostgresqlClient<'
     Ok(())
 }
 
-pub async fn delete_all_bot_data(bot_id: &str, db: &mut AsyncPostgresqlClient<'_>) -> Result<(), EngineError> {
+pub async fn delete_all_bot_data(
+    bot_id: &str,
+    db: &mut AsyncPostgresqlClient<'_>,
+) -> Result<(), EngineError> {
     diesel::delete(csml_states::table.filter(csml_states::bot_id.eq(bot_id)))
         .execute(db.client.as_mut())
         .await

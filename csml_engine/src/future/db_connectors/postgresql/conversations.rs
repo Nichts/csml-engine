@@ -1,9 +1,9 @@
 use diesel::{ExpressionMethods, QueryDsl};
-use diesel_async::{RunQueryDsl};
+use diesel_async::RunQueryDsl;
 
-use crate::{Client, EngineError, AsyncPostgresqlClient};
-use chrono::NaiveDateTime;
 use crate::models::DbConversation;
+use crate::{AsyncPostgresqlClient, Client, EngineError};
+use chrono::NaiveDateTime;
 
 use super::{models, pagination::*, schema::csml_conversations};
 
@@ -27,7 +27,8 @@ pub async fn create_conversation(
 
     let conversation: models::Conversation = diesel::insert_into(csml_conversations::table)
         .values(&new_conversation)
-        .get_result(db.client.as_mut()).await?;
+        .get_result(db.client.as_mut())
+        .await?;
 
     Ok(conversation.id.to_string())
 }
@@ -42,7 +43,8 @@ pub async fn close_conversation(
 
     diesel::update(csml_conversations::table.filter(csml_conversations::id.eq(id)))
         .set(csml_conversations::status.eq(status))
-        .execute(db.client.as_mut()).await?;
+        .execute(db.client.as_mut())
+        .await?;
 
     Ok(())
 }
@@ -58,7 +60,8 @@ pub async fn close_all_conversations(
             .filter(csml_conversations::user_id.eq(&client.user_id)),
     )
     .set(csml_conversations::status.eq("CLOSED"))
-    .execute(db.client.as_mut()).await?;
+    .execute(db.client.as_mut())
+    .await?;
 
     Ok(())
 }
@@ -74,7 +77,8 @@ pub async fn get_latest_open(
         .filter(csml_conversations::status.eq("OPEN"))
         .order_by(csml_conversations::updated_at.desc())
         .limit(1)
-        .get_result(db.client.as_mut()).await;
+        .get_result(db.client.as_mut())
+        .await;
 
     match result {
         Ok(conv) => {
@@ -117,17 +121,20 @@ pub async fn update_conversation(
                     csml_conversations::flow_id.eq(flow_id.as_str()),
                     csml_conversations::step_id.eq(step_id.as_str()),
                 ))
-                .execute(db.client.as_mut()).await?;
+                .execute(db.client.as_mut())
+                .await?;
         }
         (Some(flow_id), _) => {
             diesel::update(csml_conversations::table.filter(csml_conversations::id.eq(&id)))
                 .set(csml_conversations::flow_id.eq(flow_id.as_str()))
-                .get_result::<models::Conversation>(db.client.as_mut()).await?;
+                .get_result::<models::Conversation>(db.client.as_mut())
+                .await?;
         }
         (_, Some(step_id)) => {
             diesel::update(csml_conversations::table.filter(csml_conversations::id.eq(&id)))
                 .set(csml_conversations::step_id.eq(step_id.as_str()))
-                .get_result::<models::Conversation>(db.client.as_mut()).await?;
+                .get_result::<models::Conversation>(db.client.as_mut())
+                .await?;
         }
         _ => return Ok(()),
     };
@@ -145,7 +152,8 @@ pub async fn delete_user_conversations(
             .filter(csml_conversations::channel_id.eq(&client.channel_id))
             .filter(csml_conversations::user_id.eq(&client.user_id)),
     )
-    .execute(db.client.as_mut()).await
+    .execute(db.client.as_mut())
+    .await
     .ok();
 
     Ok(())
@@ -176,8 +184,9 @@ pub async fn get_client_conversations(
     };
     query = query.per_page(limit_per_page);
 
-    let (conversations, total_pages) =
-        query.load_and_count_pages::<models::Conversation>(db.client.as_mut()).await?;
+    let (conversations, total_pages) = query
+        .load_and_count_pages::<models::Conversation>(db.client.as_mut())
+        .await?;
 
     let mut convs = vec![];
     for conversation in conversations {
@@ -207,7 +216,10 @@ pub async fn get_client_conversations(
     }
 }
 
-pub async fn delete_all_bot_data(bot_id: &str, db: &mut AsyncPostgresqlClient<'_>) -> Result<(), EngineError> {
+pub async fn delete_all_bot_data(
+    bot_id: &str,
+    db: &mut AsyncPostgresqlClient<'_>,
+) -> Result<(), EngineError> {
     diesel::delete(csml_conversations::table.filter(csml_conversations::bot_id.eq(bot_id)))
         .execute(db.client.as_mut())
         .await

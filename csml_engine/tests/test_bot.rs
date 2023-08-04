@@ -1,14 +1,12 @@
-use csml_engine::{
-    delete_client, start_conversation,
-};
-use csml_interpreter::data::{Client, csml_bot::CsmlBot, csml_flow::CsmlFlow};
+use csml_engine::data::models::{BotOpt, CsmlRequest};
+use csml_engine::{delete_client, start_conversation};
+use csml_interpreter::data::{csml_bot::CsmlBot, csml_flow::CsmlFlow, Client};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fs;
 use std::io::prelude::*;
 use std::path::Path;
 use uuid::Uuid;
-use csml_engine::data::models::{BotOpt, CsmlRequest};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct FlowInfo {

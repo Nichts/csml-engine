@@ -1,9 +1,9 @@
 use crate::data::DynamoDbClient;
 use crate::{Client, Database, EngineError};
+use base64::Engine;
 use rusoto_dynamodb::AttributeValue;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use base64::Engine;
 use uuid::Uuid;
 
 pub mod aws_s3;

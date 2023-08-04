@@ -1,17 +1,18 @@
 use crate::{
-    CsmlBot,
-    CsmlFlow,
     data::{ConversationInfo, Database, EngineError},
-    db_connectors::state::delete_state_key, send::send_to_callback_url,
+    db_connectors::state::delete_state_key,
+    send::send_to_callback_url,
+    CsmlBot, CsmlFlow,
 };
 
+use base64::Engine;
 use chrono::{prelude::Utc, SecondsFormat};
 use csml_interpreter::{
     data::{
         ast::{Flow, InsertStep, InstructionScope},
-        Client,
-        Context,
-        context::ContextStepInfo, csml_logs::*, Event, Interval, Memory, Message,
+        context::ContextStepInfo,
+        csml_logs::*,
+        Client, Context, Event, Interval, Memory, Message,
     },
     error_format::{ERROR_KEY_ALPHANUMERIC, ERROR_NUMBER_AS_KEY, ERROR_SIZE_IDENT},
     get_step,
@@ -21,11 +22,10 @@ use rand::seq::SliceRandom;
 use serde_json::{json, map::Map, Value};
 use std::collections::HashMap;
 use std::env;
-use base64::Engine;
 
+use crate::data::models::{CsmlRequest, FlowTrigger};
 use md5::{Digest, Md5};
 use regex::Regex;
-use crate::data::models::{CsmlRequest, FlowTrigger};
 
 /**
  * Update current context memories in place.
@@ -358,7 +358,9 @@ pub fn get_current_step_hash(context: &Context, bot: &CsmlBot) -> Result<String,
 
             let ast = match &bot.bot_ast {
                 Some(ast) => {
-                    let base64decoded = base64::engine::general_purpose::STANDARD.decode(ast).unwrap();
+                    let base64decoded = base64::engine::general_purpose::STANDARD
+                        .decode(ast)
+                        .unwrap();
                     let csml_bot: HashMap<String, Flow> =
                         bincode::deserialize(&base64decoded[..]).unwrap();
                     match csml_bot.get(&context.flow) {
@@ -379,7 +381,9 @@ pub fn get_current_step_hash(context: &Context, bot: &CsmlBot) -> Result<String,
 
             match &bot.bot_ast {
                 Some(ast) => {
-                    let base64decoded = base64::engine::general_purpose::STANDARD.decode(ast).unwrap();
+                    let base64decoded = base64::engine::general_purpose::STANDARD
+                        .decode(ast)
+                        .unwrap();
                     let csml_bot: HashMap<String, Flow> =
                         bincode::deserialize(&base64decoded[..]).unwrap();
 
@@ -427,7 +431,9 @@ pub fn get_current_step_hash(context: &Context, bot: &CsmlBot) -> Result<String,
 
             let ast = match &bot.bot_ast {
                 Some(ast) => {
-                    let base64decoded = base64::engine::general_purpose::STANDARD.decode(ast).unwrap();
+                    let base64decoded = base64::engine::general_purpose::STANDARD
+                        .decode(ast)
+                        .unwrap();
                     let csml_bot: HashMap<String, Flow> =
                         bincode::deserialize(&base64decoded[..]).unwrap();
 

@@ -1,11 +1,10 @@
+use csml_engine::data::models::RunRequest;
 use csml_engine::{
-    Client, CsmlResult, ErrorInfo, start_conversation,
-    user_close_all_conversations, Warnings,
+    start_conversation, user_close_all_conversations, Client, CsmlResult, ErrorInfo, Warnings,
 };
 use csml_interpreter::data::csml_bot::CsmlBot;
 use neon::{context::Context, prelude::*, register_module};
 use serde::Deserialize;
-use csml_engine::data::models::RunRequest;
 
 ////////////////////////////////////////////////////////////////////////////////
 // PRIVATE FUNCTION

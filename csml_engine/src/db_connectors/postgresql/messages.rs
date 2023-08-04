@@ -11,9 +11,9 @@ use super::{
     pagination::*,
     schema::{csml_conversations, csml_messages},
 };
+use crate::data::filter::ClientMessageFilter;
 use chrono::NaiveDateTime;
 use uuid::Uuid;
-use crate::data::filter::ClientMessageFilter;
 
 pub fn add_messages_bulk(
     data: &mut ConversationInfo,
@@ -79,7 +79,14 @@ pub fn get_client_messages(
     db: &mut PostgresqlClient,
     filter: ClientMessageFilter<'_>,
 ) -> Result<serde_json::Value, EngineError> {
-    let ClientMessageFilter { client, limit, pagination_key, from_date, to_date, conversation_id } = filter;
+    let ClientMessageFilter {
+        client,
+        limit,
+        pagination_key,
+        from_date,
+        to_date,
+        conversation_id,
+    } = filter;
 
     let pagination_key = match pagination_key {
         Some(paginate) => paginate.parse::<i64>().unwrap_or(1),
@@ -87,8 +94,23 @@ pub fn get_client_messages(
     };
 
     let (conversation_with_messages, total_pages) = match conversation_id {
-        None => get_messages_without_conversation_filter(&client, db, limit, from_date, to_date, pagination_key)?,
-        Some(conv_id) => get_messages_with_conversation_filter(&client, db, limit, from_date, to_date, pagination_key, conv_id)?
+        None => get_messages_without_conversation_filter(
+            &client,
+            db,
+            limit,
+            from_date,
+            to_date,
+            pagination_key,
+        )?,
+        Some(conv_id) => get_messages_with_conversation_filter(
+            &client,
+            db,
+            limit,
+            from_date,
+            to_date,
+            pagination_key,
+            conv_id,
+        )?,
     };
 
     let (_, messages): (Vec<_>, Vec<_>) = conversation_with_messages.into_iter().unzip();
@@ -128,7 +150,8 @@ fn get_messages_without_conversation_filter(
     db: &mut PostgresqlClient,
     limit_per_page: i64,
     from_date: Option<i64>,
-    to_date: Option<i64>, pagination_key: i64
+    to_date: Option<i64>,
+    pagination_key: i64,
 ) -> Result<(Vec<(models::Conversation, models::Message)>, i64), EngineError> {
     let res = match from_date {
         Some(from_date) => {
@@ -182,7 +205,8 @@ fn get_messages_with_conversation_filter(
     db: &mut PostgresqlClient,
     limit_per_page: i64,
     from_date: Option<i64>,
-    to_date: Option<i64>, pagination_key: i64,
+    to_date: Option<i64>,
+    pagination_key: i64,
     conversation_id: String,
 ) -> Result<(Vec<(models::Conversation, models::Message)>, i64), EngineError> {
     let id = Uuid::parse_str(&conversation_id)?;

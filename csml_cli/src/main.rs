@@ -2,7 +2,7 @@ mod init_package;
 mod interface;
 mod run;
 
-use clap::{Parser};
+use clap::Parser;
 use clap_derive::{Parser, Subcommand};
 use csml_engine::data::models::BotOpt;
 
@@ -13,7 +13,7 @@ use run::load_info;
 #[command(about = "CSML CLI")]
 pub struct Args {
     #[command(subcommand)]
-    command: Option<Commands>
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
@@ -33,15 +33,20 @@ pub enum Commands {
     Init,
 }
 
-
 fn main() {
     let matches = Args::parse();
 
     if let Some(command) = matches.command {
         match command {
             Commands::Init => interface::csml_ui(StartUI::Init).unwrap(),
-            Commands::Run { text, flow, step, debug: _ } => {
-                let request = format_initial_payload(flow.as_deref(), step.as_deref(), text.as_deref());
+            Commands::Run {
+                text,
+                flow,
+                step,
+                debug: _,
+            } => {
+                let request =
+                    format_initial_payload(flow.as_deref(), step.as_deref(), text.as_deref());
 
                 match load_info(".") {
                     Ok(bot) => {

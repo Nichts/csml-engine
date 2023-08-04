@@ -1,11 +1,9 @@
-use csml_engine::{
-    Client, CsmlResult, start_conversation, user_close_all_conversations,
-};
+use csml_engine::{start_conversation, user_close_all_conversations, Client, CsmlResult};
 use csml_interpreter::data::csml_bot::CsmlBot;
 
+use csml_engine::data::models::RunRequest;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
-use csml_engine::data::models::RunRequest;
 
 #[derive(Debug, serde::Deserialize)]
 pub struct LimitPaginationQueryParams {

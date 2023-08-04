@@ -7,11 +7,11 @@ use crate::db_connectors::{is_postgresql, postgresql_connector};
 #[cfg(feature = "sqlite")]
 use crate::db_connectors::{is_sqlite, sqlite_connector};
 
+use crate::data::filter::ClientMessageFilter;
 use crate::db_connectors::utils::*;
 use crate::error_messages::ERROR_DB_SETUP;
 use crate::{ConversationInfo, Database, EngineError};
 use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
-use crate::data::filter::ClientMessageFilter;
 
 pub fn add_messages_bulk(
     data: &mut ConversationInfo,
@@ -152,18 +152,14 @@ pub fn get_client_messages(
     if is_postgresql() {
         let db = postgresql_connector::get_db(db)?;
 
-        return postgresql_connector::messages::get_client_messages(
-            db, filter
-        );
+        return postgresql_connector::messages::get_client_messages(db, filter);
     }
 
     #[cfg(feature = "sqlite")]
     if is_sqlite() {
         let db = sqlite_connector::get_db(db)?;
 
-        return sqlite_connector::messages::get_client_messages(
-            db, filter
-        );
+        return sqlite_connector::messages::get_client_messages(db, filter);
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))

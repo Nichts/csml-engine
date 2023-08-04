@@ -27,10 +27,10 @@ use fold_bot::fold_bot as fold;
 use linter::{linter::lint_bot, FlowToValidate};
 use parser::ExitCondition;
 
+use base64::Engine;
 use std::collections::HashMap;
 use std::env;
 use std::sync::mpsc;
-use base64::Engine;
 
 ////////////////////////////////////////////////////////////////////////////////
 // PRIVATE FUNCTIONS
@@ -352,7 +352,9 @@ pub fn fold_bot(bot: &CsmlBot) -> String {
 fn get_flows(bot: &CsmlBot) -> (HashMap<String, Flow>, HashMap<String, Flow>) {
     match &bot.bot_ast {
         Some(bot) => {
-            let base64decoded = base64::engine::general_purpose::STANDARD.decode(&bot).unwrap();
+            let base64decoded = base64::engine::general_purpose::STANDARD
+                .decode(&bot)
+                .unwrap();
             bincode::deserialize(&base64decoded[..]).unwrap()
         }
         None => {
@@ -389,8 +391,10 @@ pub fn search_for_modules(bot: &mut CsmlBot) -> Result<(), String> {
                     let request = ureq::get(url);
                     match &module.auth {
                         Some(auth) => {
-                            let authorization =
-                                format!("Basic {}", base64::engine::general_purpose::STANDARD.encode(auth.as_bytes()));
+                            let authorization = format!(
+                                "Basic {}",
+                                base64::engine::general_purpose::STANDARD.encode(auth.as_bytes())
+                            );
 
                             request.set("Authorization", &authorization)
                         }
@@ -402,8 +406,10 @@ pub fn search_for_modules(bot: &mut CsmlBot) -> Result<(), String> {
 
                     match &default_auth {
                         Some(auth) => {
-                            let authorization =
-                                format!("Basic {}", base64::engine::general_purpose::STANDARD.encode(auth.as_bytes()));
+                            let authorization = format!(
+                                "Basic {}",
+                                base64::engine::general_purpose::STANDARD.encode(auth.as_bytes())
+                            );
 
                             request.set("Authorization", &authorization)
                         }

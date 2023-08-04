@@ -52,7 +52,6 @@ pub mod db_test;
 #[cfg(feature = "postgresql-async")]
 pub(crate) mod postgresql;
 
-
 #[cfg(feature = "postgresql-async")]
 pub fn is_postgresql() -> bool {
     match std::env::var("ENGINE_DB_TYPE") {

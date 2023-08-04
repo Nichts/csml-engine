@@ -17,7 +17,12 @@ pub fn delete_client(client: &Client, db: &mut Database) -> Result<(), EngineErr
         LogLvl::Info,
     );
     csml_logger(
-        CsmlLog::new(Some(client), None, None, "db call delete client".to_string()),
+        CsmlLog::new(
+            Some(client),
+            None,
+            None,
+            "db call delete client".to_string(),
+        ),
         LogLvl::Debug,
     );
 

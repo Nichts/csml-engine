@@ -1,24 +1,24 @@
 pub mod data;
 
-#[cfg(feature = "async")]
-pub mod future;
 mod db_connectors;
 mod encrypt;
 mod error_messages;
+#[cfg(feature = "async")]
+pub mod future;
 mod init;
 mod interpreter_actions;
+mod models;
 mod send;
 mod utils;
-mod models;
 
 pub use csml_interpreter::{
     data::{
         ast::{Expr, Flow, InstructionScope},
-        Client,
         csml_logs::*,
-        CsmlResult,
         error_info::ErrorInfo,
-        Event, position::Position, warnings::Warnings,
+        position::Position,
+        warnings::Warnings,
+        Client, CsmlResult, Event,
     },
     load_components, search_for_modules,
 };
@@ -41,15 +41,15 @@ use init::*;
 use interpreter_actions::interpret_step;
 use utils::*;
 
+use crate::data::filter::ClientMessageFilter;
 use chrono::prelude::*;
 use csml_interpreter::data::{
-    Context, csml_bot::CsmlBot, csml_flow::CsmlFlow, Hold, IndexInfo, Memory,
+    csml_bot::CsmlBot, csml_flow::CsmlFlow, Context, Hold, IndexInfo, Memory,
 };
-use std::{collections::HashMap, env};
 use data::models::{BotOpt, CsmlRequest};
 use interpreter_actions::models::SwitchBot;
 use models::{BotVersion, BotVersionCreated, DbConversation};
-use crate::data::filter::ClientMessageFilter;
+use std::{collections::HashMap, env};
 
 pub fn start_conversation_db(
     request: CsmlRequest,
@@ -246,7 +246,7 @@ pub fn get_client_messages(
 
 pub fn get_client_messages_filtered(
     db: &mut Database,
-    filter: ClientMessageFilter<'_>
+    filter: ClientMessageFilter<'_>,
 ) -> Result<serde_json::Value, EngineError> {
     init_logger();
 
@@ -612,10 +612,7 @@ pub fn get_status() -> Result<serde_json::Value, EngineError> {
     };
 
     match std::env::var("CSML_LOG_LEVEL") {
-        Ok(val) => status.insert(
-            "csml_log_level".to_owned(),
-            serde_json::json!(val),
-        ),
+        Ok(val) => status.insert("csml_log_level".to_owned(), serde_json::json!(val)),
         Err(_) => status.insert(
             "csml_log_level".to_owned(),
             serde_json::json!("info".to_owned()),

@@ -11,8 +11,8 @@ use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
 
 use crate::db_connectors::{state, utils::*};
 use crate::error_messages::ERROR_DB_SETUP;
-use crate::{Client, ConversationInfo, Database, EngineError};
 use crate::models::DbConversation;
+use crate::{Client, ConversationInfo, Database, EngineError};
 
 pub fn create_conversation(
     flow_id: &str,
@@ -138,7 +138,12 @@ pub fn close_conversation(id: &str, client: &Client, db: &mut Database) -> Resul
 
 pub fn close_all_conversations(client: &Client, db: &mut Database) -> Result<(), EngineError> {
     csml_logger(
-        CsmlLog::new(None, None, None, "db call close all conversations".to_string()),
+        CsmlLog::new(
+            None,
+            None,
+            None,
+            "db call close all conversations".to_string(),
+        ),
         LogLvl::Info,
     );
     csml_logger(

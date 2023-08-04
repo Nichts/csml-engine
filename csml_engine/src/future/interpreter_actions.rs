@@ -1,6 +1,8 @@
 use crate::future::db_connectors::{conversations::*, memories::*, messages::*, state::*};
 use crate::future::utils::*;
 
+use crate::data::{AsyncConversationInfo, EngineError};
+use crate::interpreter_actions::models::{InterpreterReturn, SwitchBot};
 use csml_interpreter::data::context::ContextStepInfo;
 use csml_interpreter::{
     data::{
@@ -12,8 +14,6 @@ use csml_interpreter::{
 use serde_json::{map::Map, Value};
 use std::collections::HashMap;
 use std::{sync::mpsc, thread};
-use crate::data::{AsyncConversationInfo, EngineError};
-use crate::interpreter_actions::models::{InterpreterReturn, SwitchBot};
 
 /**
  * This is the CSML Engine action.
@@ -157,7 +157,8 @@ pub async fn interpret_step(
                     vec![("position", &state_hold)],
                     data.ttl,
                     &mut data.db,
-                ).await?;
+                )
+                .await?;
                 data.context.hold = Some(Hold {
                     index,
                     step_vars,
@@ -181,7 +182,9 @@ pub async fn interpret_step(
                     &mut memories,
                     flow,
                     step,
-                ).await {
+                )
+                .await
+                {
                     break;
                 }
             }
@@ -192,7 +195,8 @@ pub async fn interpret_step(
                 bot: Some(target_bot),
             } => {
                 if let Ok(InterpreterReturn::SwitchBot(s_bot)) =
-                    manage_switch_bot(data, &mut interaction_order, bot, flow, step, target_bot).await
+                    manage_switch_bot(data, &mut interaction_order, bot, flow, step, target_bot)
+                        .await
                 {
                     switch_bot = Some(s_bot);
                     break;
@@ -211,7 +215,8 @@ pub async fn interpret_step(
                     LogLvl::Error,
                 );
 
-                send_msg_to_callback_url(data, vec![err_msg.clone()], interaction_order, true).await;
+                send_msg_to_callback_url(data, vec![err_msg.clone()], interaction_order, true)
+                    .await;
                 data.messages.push(err_msg);
                 close_conversation(&data.conversation_id, &data.client, &mut data.db).await?;
             }
@@ -276,13 +281,12 @@ async fn manage_switch_bot<'a>(
                 data,
                 vec![Message {
                     content_type: "error".to_owned(),
-                    content: serde_json::json!({
-                        "error": error_message
-                    }),
+                    content: serde_json::json!({ "error": error_message }),
                 }],
                 *interaction_order,
                 true,
-            ).await;
+            )
+            .await;
 
             csml_logger(
                 CsmlLog::new(
@@ -402,7 +406,8 @@ async fn manage_switch_bot<'a>(
         vec![("previous", &previous_bot)],
         data.ttl,
         &mut data.db,
-    ).await?;
+    )
+    .await?;
 
     Ok(InterpreterReturn::SwitchBot(SwitchBot {
         bot_id: next_bot.id.to_owned(),
@@ -526,7 +531,8 @@ async fn goto_flow<'a>(
         data,
         Some(current_flow.id.clone()),
         Some(data.context.step.get_step()),
-    ).await?;
+    )
+    .await?;
 
     *interaction_order += 1;
 

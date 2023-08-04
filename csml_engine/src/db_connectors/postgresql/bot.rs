@@ -47,7 +47,8 @@ pub fn get_bot_versions(
     };
     query = query.per_page(limit_per_page);
 
-    let (bot_versions, total_pages) = query.load_and_count_pages::<models::Bot>(db.client.as_mut())?;
+    let (bot_versions, total_pages) =
+        query.load_and_count_pages::<models::Bot>(db.client.as_mut())?;
 
     let mut bots = vec![];
     for bot_version in bot_versions {

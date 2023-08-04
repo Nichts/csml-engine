@@ -5,9 +5,9 @@ pub mod messages;
 pub mod state;
 
 use crate::{Database, EngineError, MongoDbClient};
+use base64::Engine;
 use bson::{doc, Document};
 use core::time::Duration as CoreDuration;
-use base64::Engine;
 use mongodb::{options::IndexOptions, IndexModel};
 
 fn create_mongodb_uri() -> Result<String, EngineError> {

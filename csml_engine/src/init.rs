@@ -1,27 +1,27 @@
 use crate::db_connectors::{conversations::*, memories::*, state};
 use crate::interpreter_actions::models::SwitchBot;
 use crate::{
-    Context,
-    CsmlBot,
-    CsmlFlow, CsmlResult, data::{ConversationInfo, Database, EngineError}, utils::{
+    data::{ConversationInfo, Database, EngineError},
+    utils::{
         get_default_flow, get_flow_by_id, get_low_data_mode_value, get_ttl_duration_value,
         search_flow, send_msg_to_callback_url,
     },
+    Context, CsmlBot, CsmlFlow, CsmlResult,
 };
 
 use csml_interpreter::data::context::ContextStepInfo;
 use csml_interpreter::{
     data::{
-        ApiInfo,
         ast::Flow,
-        Client, context::{get_hashmap_from_json, get_hashmap_from_mem}, Event, Message, PreviousBot,
+        context::{get_hashmap_from_json, get_hashmap_from_mem},
+        ApiInfo, Client, Event, Message, PreviousBot,
     },
     load_components, search_for_modules, validate_bot,
 };
 
-use std::collections::HashMap;
-use base64::Engine;
 use crate::data::models::{BotOpt, CsmlRequest};
+use base64::Engine;
+use std::collections::HashMap;
 
 /**
  * Initialize a new ConversationInfo data, usually upon new chat request.
@@ -60,14 +60,8 @@ pub fn init_conversation_info<'a, 'b>(
     // or another, this takes precedence over any previously open conversation
     // and a new conversation is created with the new flow as a starting point.
     let flow_found = search_flow(event, bot, &request.client, &mut db).ok();
-    let conversation_id = get_or_create_conversation(
-        &mut context,
-        bot,
-        flow_found,
-        &request.client,
-        ttl,
-        &mut db,
-    )?;
+    let conversation_id =
+        get_or_create_conversation(&mut context, bot, flow_found, &request.client, ttl, &mut db)?;
 
     context.metadata = get_hashmap_from_json(&request.metadata, &context.flow);
     context.current = get_hashmap_from_mem(
@@ -126,9 +120,10 @@ fn set_bot_ast(bot: &mut CsmlBot) -> Result<(), EngineError> {
             errors: None,
             ..
         } => {
-            bot.bot_ast = Some(base64::engine::general_purpose::STANDARD.encode(
-                bincode::serialize(&(&flows, &extern_flows)).unwrap(),
-            ));
+            bot.bot_ast = Some(
+                base64::engine::general_purpose::STANDARD
+                    .encode(bincode::serialize(&(&flows, &extern_flows)).unwrap()),
+            );
         }
         CsmlResult {
             flows: Some(flows),
@@ -138,9 +133,10 @@ fn set_bot_ast(bot: &mut CsmlBot) -> Result<(), EngineError> {
         } => {
             let extern_flows: HashMap<String, Flow> = HashMap::new();
 
-            bot.bot_ast = Some(base64::engine::general_purpose::STANDARD.encode(
-                bincode::serialize(&(&flows, &extern_flows)).unwrap(),
-            ));
+            bot.bot_ast = Some(
+                base64::engine::general_purpose::STANDARD
+                    .encode(bincode::serialize(&(&flows, &extern_flows)).unwrap()),
+            );
         }
         CsmlResult {
             errors: Some(errors),
@@ -169,9 +165,9 @@ pub fn init_context(
     let previous_bot = get_previous_bot(&client, db);
 
     let api_info = apps_endpoint.as_ref().map(|value| ApiInfo {
-            client,
-            apps_endpoint: value.to_owned(),
-        });
+        client,
+        apps_endpoint: value.to_owned(),
+    });
 
     Context {
         current: HashMap::new(),
@@ -309,7 +305,7 @@ pub fn switch_bot(
 
             let message = Message {
                 content_type: "error".to_owned(),
-                content: serde_json::json!({"error": error_message}),
+                content: serde_json::json!({ "error": error_message }),
             };
 
             // save message

@@ -19,9 +19,9 @@ use crate::interpreter::{
     builtins::http_builtin::http_request, json_to_rust::json_to_literal,
     variable_handler::match_literals::match_obj,
 };
+use base64::Engine;
 use std::cmp::Ordering;
 use std::{collections::HashMap, sync::mpsc};
-use base64::Engine;
 
 use chrono::{DateTime, FixedOffset, LocalResult, TimeZone, Timelike, Utc};
 use chrono_tz::{Tz, UTC};
@@ -255,7 +255,10 @@ impl PrimitiveObject {
         };
 
         let user_password = format!("{}:{}", username, password);
-        let authorization = format!("Basic {}", base64::engine::general_purpose::STANDARD.encode(user_password.as_bytes()));
+        let authorization = format!(
+            "Basic {}",
+            base64::engine::general_purpose::STANDARD.encode(user_password.as_bytes())
+        );
 
         let mut object = object.to_owned();
 

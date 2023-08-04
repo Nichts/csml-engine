@@ -10,35 +10,33 @@ pub mod send;
 pub use csml_interpreter::{
     data::{
         ast::{Expr, Flow, InstructionScope},
-        Client,
         csml_logs::*,
-        CsmlResult,
         error_info::ErrorInfo,
-        Event, position::Position, warnings::Warnings,
+        position::Position,
+        warnings::Warnings,
+        Client, CsmlResult, Event,
     },
     load_components, search_for_modules,
 };
 
 use crate::data::*;
+use crate::interpreter_actions::models::SwitchBot;
 use db_connectors::{
     bot, clean_db, conversations, init_db, memories, messages, state,
     state::{delete_state_key, set_state_items},
     user,
 };
 use init::*;
-use interpreter_actions::{interpret_step};
-use crate::interpreter_actions::models::SwitchBot;
+use interpreter_actions::interpret_step;
 use utils::*;
 
-use chrono::prelude::*;
-use csml_interpreter::data::{
-    csml_bot::CsmlBot, Hold, IndexInfo,
-};
-use std::{collections::HashMap, env};
-use futures::future::{BoxFuture, FutureExt};
 use crate::data::filter::ClientMessageFilter;
-use crate::models::{BotVersion, BotVersionCreated, DbConversation};
 use crate::data::models::{BotOpt, CsmlRequest};
+use crate::models::{BotVersion, BotVersionCreated, DbConversation};
+use chrono::prelude::*;
+use csml_interpreter::data::{csml_bot::CsmlBot, Hold, IndexInfo};
+use futures::future::{BoxFuture, FutureExt};
+use std::{collections::HashMap, env};
 
 pub async fn start_conversation_db(
     request: CsmlRequest,
@@ -58,13 +56,16 @@ pub async fn start_conversation_db(
         &request,
         &bot,
         db,
-    ).await?;
+    )
+    .await?;
 
     check_for_hold(&mut data, &bot, &mut formatted_event).await?;
 
     /////////// block user event if delay variable si on and delay_time is bigger than current time
     if let Some(delay) = bot.no_interruption_delay {
-        if let Some(delay) = state::get_state_key(&data.client, "delay", "content", &mut data.db).await? {
+        if let Some(delay) =
+            state::get_state_key(&data.client, "delay", "content", &mut data.db).await?
+        {
             match (delay["delay_value"].as_i64(), delay["timestamp"].as_i64()) {
                 (Some(delay), Some(timestamp)) if timestamp + delay >= Utc::now().timestamp() => {
                     return Ok(serde_json::Map::new());
@@ -84,7 +85,8 @@ pub async fn start_conversation_db(
             vec![("content", &delay)],
             data.ttl,
             &mut data.db,
-        ).await?;
+        )
+        .await?;
     }
     //////////////////////////////////////
 
@@ -111,7 +113,8 @@ pub async fn start_conversation_db(
         &mut bot,
         &mut bot_opt,
         &mut formatted_event,
-    ).await
+    )
+    .await
 }
 
 /**
@@ -184,7 +187,8 @@ fn check_switch_bot<'a>(
                 Err(err)
             }
         }
-    }.boxed()
+    }
+    .boxed()
 }
 
 /**
@@ -205,7 +209,10 @@ pub async fn get_client_memories(client: &Client) -> Result<serde_json::Value, E
     memories::get_memories(client, &mut db).await
 }
 
-pub async fn get_client_memory(client: &Client, key: &str) -> Result<serde_json::Value, EngineError> {
+pub async fn get_client_memory(
+    client: &Client,
+    key: &str,
+) -> Result<serde_json::Value, EngineError> {
     let mut db = init_db().await?;
     init_logger();
 
@@ -232,13 +239,12 @@ pub async fn get_client_messages(
         conversation_id: None,
     };
 
-
     get_client_messages_filtered(&mut db, filter).await
 }
 
 pub async fn get_client_messages_filtered<'conn, 'a: 'conn>(
     db: &'a mut AsyncDatabase<'conn>,
-    filter: ClientMessageFilter<'a>
+    filter: ClientMessageFilter<'a>,
 ) -> Result<serde_json::Value, EngineError> {
     init_logger();
 
@@ -327,7 +333,10 @@ pub async fn get_last_bot_version(bot_id: &str) -> Result<Option<BotVersion>, En
 /**
  * get bot by version_id
  */
-pub async fn get_bot_by_version_id(id: &str, bot_id: &str) -> Result<Option<BotVersion>, EngineError> {
+pub async fn get_bot_by_version_id(
+    id: &str,
+    bot_id: &str,
+) -> Result<Option<BotVersion>, EngineError> {
     let mut db = init_db().await?;
     init_logger();
 
@@ -604,10 +613,7 @@ pub async fn get_status() -> Result<serde_json::Value, EngineError> {
     };
 
     match std::env::var("CSML_LOG_LEVEL") {
-        Ok(val) => status.insert(
-            "csml_log_level".to_owned(),
-            serde_json::json!(val),
-        ),
+        Ok(val) => status.insert("csml_log_level".to_owned(), serde_json::json!(val)),
         Err(_) => status.insert(
             "csml_log_level".to_owned(),
             serde_json::json!("info".to_owned()),

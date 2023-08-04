@@ -1,6 +1,6 @@
+use crate::data::EngineError;
 use csml_interpreter::data::{Client, CsmlBot, MultiBot};
 use serde_derive::{Deserialize, Serialize};
-use crate::data::EngineError;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FlowTrigger {

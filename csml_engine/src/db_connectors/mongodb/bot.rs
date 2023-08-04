@@ -1,11 +1,11 @@
-use base64::Engine;
+use crate::models::{BotVersion, DbBot};
 use crate::{
     data::{CsmlBotBincode, MongoDbClient, SerializeCsmlBot},
     EngineError,
 };
+use base64::Engine;
 use bson::{doc, Document};
 use chrono::SecondsFormat;
-use crate::models::{BotVersion, DbBot};
 
 fn format_bot_struct(bot: bson::document::Document) -> Result<DbBot, EngineError> {
     Ok(DbBot {
@@ -80,15 +80,16 @@ pub fn get_bot_versions(
             Ok(bot_doc) => {
                 let bot_version = format_bot_struct(bot_doc)?;
 
-                let csml_bot: SerializeCsmlBot = match base64::engine::general_purpose::STANDARD.decode(&bot_version.bot) {
-                    Ok(base64decoded) => {
-                        match bincode::deserialize::<CsmlBotBincode>(&base64decoded[..]) {
-                            Ok(bot) => bot.to_bot(),
-                            Err(_) => serde_json::from_str(&bot_version.bot).unwrap(),
+                let csml_bot: SerializeCsmlBot =
+                    match base64::engine::general_purpose::STANDARD.decode(&bot_version.bot) {
+                        Ok(base64decoded) => {
+                            match bincode::deserialize::<CsmlBotBincode>(&base64decoded[..]) {
+                                Ok(bot) => bot.to_bot(),
+                                Err(_) => serde_json::from_str(&bot_version.bot).unwrap(),
+                            }
                         }
-                    }
-                    Err(_) => serde_json::from_str(&bot_version.bot).unwrap(),
-                };
+                        Err(_) => serde_json::from_str(&bot_version.bot).unwrap(),
+                    };
 
                 let mut json = serde_json::json!({
                     "version_id": bot_version.id,
@@ -114,7 +115,8 @@ pub fn get_bot_versions(
             bots.pop();
             match bots.last() {
                 Some(last) => {
-                    let pagination_key = base64::engine::general_purpose::STANDARD.encode(last["version_id"].clone().to_string());
+                    let pagination_key = base64::engine::general_purpose::STANDARD
+                        .encode(last["version_id"].clone().to_string());
 
                     Ok(serde_json::json!({"bots": bots, "pagination_key": pagination_key}))
                 }
@@ -145,15 +147,16 @@ pub fn get_bot_by_version_id(
         Some(bot) => {
             let bot = format_bot_struct(bot)?;
 
-            let csml_bot: SerializeCsmlBot = match base64::engine::general_purpose::STANDARD.decode(&bot.bot) {
-                Ok(base64decoded) => {
-                    match bincode::deserialize::<CsmlBotBincode>(&base64decoded[..]) {
-                        Ok(bot) => bot.to_bot(),
-                        Err(_) => serde_json::from_str(&bot.bot).unwrap(),
+            let csml_bot: SerializeCsmlBot =
+                match base64::engine::general_purpose::STANDARD.decode(&bot.bot) {
+                    Ok(base64decoded) => {
+                        match bincode::deserialize::<CsmlBotBincode>(&base64decoded[..]) {
+                            Ok(bot) => bot.to_bot(),
+                            Err(_) => serde_json::from_str(&bot.bot).unwrap(),
+                        }
                     }
-                }
-                Err(_) => serde_json::from_str(&bot.bot).unwrap(),
-            };
+                    Err(_) => serde_json::from_str(&bot.bot).unwrap(),
+                };
 
             Ok(Some(BotVersion {
                 bot: csml_bot.to_bot(),
@@ -185,15 +188,16 @@ pub fn get_last_bot_version(
         Some(bot) => {
             let bot = format_bot_struct(bot)?;
 
-            let csml_bot: SerializeCsmlBot = match base64::engine::general_purpose::STANDARD.decode(&bot.bot) {
-                Ok(base64decoded) => {
-                    match bincode::deserialize::<CsmlBotBincode>(&base64decoded[..]) {
-                        Ok(bot) => bot.to_bot(),
-                        Err(_) => serde_json::from_str(&bot.bot).unwrap(),
+            let csml_bot: SerializeCsmlBot =
+                match base64::engine::general_purpose::STANDARD.decode(&bot.bot) {
+                    Ok(base64decoded) => {
+                        match bincode::deserialize::<CsmlBotBincode>(&base64decoded[..]) {
+                            Ok(bot) => bot.to_bot(),
+                            Err(_) => serde_json::from_str(&bot.bot).unwrap(),
+                        }
                     }
-                }
-                Err(_) => serde_json::from_str(&bot.bot).unwrap(),
-            };
+                    Err(_) => serde_json::from_str(&bot.bot).unwrap(),
+                };
 
             Ok(Some(BotVersion {
                 bot: csml_bot.to_bot(),

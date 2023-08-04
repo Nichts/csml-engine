@@ -1,13 +1,11 @@
 use crate::data::{DynamoBot, DynamoBotBincode, DynamoDbClient};
-use crate::db_connectors::{
-    dynamodb::{aws_s3, Bot, BotKeys, Class, DynamoDbKey},
-};
+use crate::db_connectors::dynamodb::{aws_s3, Bot, BotKeys, Class, DynamoDbKey};
+use crate::models::BotVersion;
 use crate::EngineError;
+use base64::Engine;
 use csml_interpreter::data::{csml_bot::Module, csml_flow::CsmlFlow};
 use rusoto_dynamodb::*;
 use std::collections::HashMap;
-use base64::Engine;
-use crate::models::BotVersion;
 
 pub fn create_bot_version(
     bot_id: String,
@@ -181,7 +179,8 @@ pub fn get_bot_versions(
 
     match data.last_evaluated_key {
         Some(pagination_key) => {
-            let pagination_key = base64::engine::general_purpose::STANDARD.encode(serde_json::json!(pagination_key).to_string());
+            let pagination_key = base64::engine::general_purpose::STANDARD
+                .encode(serde_json::json!(pagination_key).to_string());
 
             Ok(serde_json::json!({"bots": bots, "pagination_key": pagination_key}))
         }
@@ -212,15 +211,16 @@ pub fn get_bot_by_version_id(
         Some(val) => {
             let bot: Bot = serde_dynamodb::from_hashmap(val)?;
 
-            let csml_bot: DynamoBot = match base64::engine::general_purpose::STANDARD.decode(&bot.bot) {
-                Ok(base64decoded) => {
-                    match bincode::deserialize::<DynamoBotBincode>(&base64decoded[..]) {
-                        Ok(bot) => bot.to_bot(),
-                        Err(_) => serde_json::from_str(&bot.bot).unwrap(),
+            let csml_bot: DynamoBot =
+                match base64::engine::general_purpose::STANDARD.decode(&bot.bot) {
+                    Ok(base64decoded) => {
+                        match bincode::deserialize::<DynamoBotBincode>(&base64decoded[..]) {
+                            Ok(bot) => bot.to_bot(),
+                            Err(_) => serde_json::from_str(&bot.bot).unwrap(),
+                        }
                     }
-                }
-                Err(_) => serde_json::from_str(&bot.bot).unwrap(),
-            };
+                    Err(_) => serde_json::from_str(&bot.bot).unwrap(),
+                };
 
             let key = format!("bots/{}/versions/{}/flows.json", bot_id, version_id);
             let flows = get_flows(&key, db)?;
@@ -326,15 +326,16 @@ pub fn get_last_bot_version(
         Some(val) => {
             let bot: Bot = serde_dynamodb::from_hashmap(val)?;
 
-            let csml_bot: DynamoBot = match base64::engine::general_purpose::STANDARD.decode(&bot.bot) {
-                Ok(base64decoded) => {
-                    match bincode::deserialize::<DynamoBotBincode>(&base64decoded[..]) {
-                        Ok(bot) => bot.to_bot(),
-                        Err(_) => serde_json::from_str(&bot.bot).unwrap(),
+            let csml_bot: DynamoBot =
+                match base64::engine::general_purpose::STANDARD.decode(&bot.bot) {
+                    Ok(base64decoded) => {
+                        match bincode::deserialize::<DynamoBotBincode>(&base64decoded[..]) {
+                            Ok(bot) => bot.to_bot(),
+                            Err(_) => serde_json::from_str(&bot.bot).unwrap(),
+                        }
                     }
-                }
-                Err(_) => serde_json::from_str(&bot.bot).unwrap(),
-            };
+                    Err(_) => serde_json::from_str(&bot.bot).unwrap(),
+                };
 
             let key = format!("bots/{}/versions/{}/flows.json", bot_id, bot.version_id);
             let flows = get_flows(&key, db)?;

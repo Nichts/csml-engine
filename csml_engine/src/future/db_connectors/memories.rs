@@ -3,9 +3,9 @@ use crate::future::db_connectors::{is_postgresql, postgresql_connector};
 
 use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
 
-use crate::future::db_connectors::utils::*;
 use crate::error_messages::ERROR_DB_SETUP;
-use crate::{Client, AsyncConversationInfo, AsyncDatabase, EngineError, Memory};
+use crate::future::db_connectors::utils::*;
+use crate::{AsyncConversationInfo, AsyncDatabase, Client, EngineError, Memory};
 use std::collections::HashMap;
 
 pub async fn add_memories(
@@ -67,7 +67,8 @@ pub async fn create_client_memory(
         let expires_at = get_expires_at_for_postgresql(ttl);
         return postgresql_connector::memories::create_client_memory(
             client, &key, &value, expires_at, db,
-        ).await;
+        )
+        .await;
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
@@ -98,7 +99,10 @@ pub async fn internal_use_get_memories(
 /**
  * Get client Memories
  */
-pub async fn get_memories(client: &Client, db: &mut AsyncDatabase<'_>) -> Result<serde_json::Value, EngineError> {
+pub async fn get_memories(
+    client: &Client,
+    db: &mut AsyncDatabase<'_>,
+) -> Result<serde_json::Value, EngineError> {
     csml_logger(
         CsmlLog::new(None, None, None, "db call get memories client".to_string()),
         LogLvl::Info,
@@ -181,13 +185,21 @@ pub async fn delete_client_memory(
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
 }
 
-pub async fn delete_client_memories(client: &Client, db: &mut AsyncDatabase<'_>) -> Result<(), EngineError> {
+pub async fn delete_client_memories(
+    client: &Client,
+    db: &mut AsyncDatabase<'_>,
+) -> Result<(), EngineError> {
     csml_logger(
         CsmlLog::new(None, None, None, "db call delete memories".to_string()),
         LogLvl::Info,
     );
     csml_logger(
-        CsmlLog::new(Some(client), None, None, "db call delete memories".to_string()),
+        CsmlLog::new(
+            Some(client),
+            None,
+            None,
+            "db call delete memories".to_string(),
+        ),
         LogLvl::Debug,
     );
 

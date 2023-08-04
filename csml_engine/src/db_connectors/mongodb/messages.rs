@@ -1,11 +1,10 @@
+use crate::models::DbMessage;
 use crate::{
-    Client,
-    ConversationInfo,
-    db_connectors::mongodb::get_db, encrypt::decrypt_data, EngineError, MongoDbClient,
+    db_connectors::mongodb::get_db, encrypt::decrypt_data, Client, ConversationInfo, EngineError,
+    MongoDbClient,
 };
 use bson::{doc, Document};
 use chrono::SecondsFormat;
-use crate::models::DbMessage;
 
 fn format_messages(
     data: &ConversationInfo,
@@ -206,7 +205,8 @@ pub fn get_client_messages(
             messages.pop();
             match messages.last() {
                 Some(last) => {
-                    let pagination_key = base64::engine::general_purpose::STANDARD.encode(last["version_id"].clone().to_string());
+                    let pagination_key = base64::engine::general_purpose::STANDARD
+                        .encode(last["version_id"].clone().to_string());
 
                     Ok(serde_json::json!({"messages": messages, "pagination_key": pagination_key}))
                 }

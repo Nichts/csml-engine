@@ -4,14 +4,14 @@ use tui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
-    Terminal,
     text::{Span, Spans, Text},
     widgets::{Block, Borders, Paragraph, Wrap},
+    Terminal,
 };
 
 use std::collections::VecDeque;
 
-use crate::interface::{AppRun, AppState, chat_widget::*};
+use crate::interface::{chat_widget::*, AppRun, AppState};
 use crate::run::{init_request, init_request_flow_trigger};
 use unicode_width::UnicodeWidthStr;
 
@@ -36,8 +36,8 @@ pub struct Messages {
 
 // #################################################################################
 
-use csml_engine::start_conversation;
 use csml_engine::data::models::{BotOpt, CsmlRequest};
+use csml_engine::start_conversation;
 
 pub fn format_initial_payload(
     flow: Option<&str>,

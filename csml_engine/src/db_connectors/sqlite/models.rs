@@ -1,4 +1,4 @@
-use diesel::{backend, Associations, Identifiable, Insertable, Queryable};
+use diesel::{Associations, Identifiable, Insertable, Queryable};
 
 use diesel::deserialize::{self, FromSql};
 use diesel::serialize::{self, Output, ToSql};
@@ -10,6 +10,7 @@ use uuid;
 
 use super::schema::*;
 use chrono::NaiveDateTime;
+use diesel::backend::Backend;
 
 #[derive(Identifiable, Queryable, PartialEq, Debug)]
 #[diesel(table_name = cmsl_bot_versions)]
@@ -201,7 +202,7 @@ impl Display for UUID {
 }
 
 impl FromSql<Binary, Sqlite> for UUID {
-    fn from_sql(value: backend::RawValue<'_, Sqlite>) -> deserialize::Result<Self> {
+    fn from_sql(value: <Sqlite as Backend>::RawValue<'_>) -> deserialize::Result<Self> {
         let bytes = <*const [u8] as FromSql<Binary, Sqlite>>::from_sql(value)?;
 
         unsafe {

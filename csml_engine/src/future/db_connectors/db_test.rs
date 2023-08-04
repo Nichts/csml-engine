@@ -3,7 +3,10 @@ mod tests {
     use csml_interpreter::data::{context::ContextStepInfo, CsmlBot, CsmlFlow, Message};
     use std::collections::HashMap;
 
-    use crate::{future::db_connectors::*, future::db_connectors::init_db, make_migrations, Client, Context, AsyncConversationInfo};
+    use crate::{
+        future::db_connectors::init_db, future::db_connectors::*, make_migrations,
+        AsyncConversationInfo, Client, Context,
+    };
 
     fn get_client() -> Client {
         Client {
@@ -81,21 +84,28 @@ mod tests {
         let bot_id = bot.id.clone();
         let mut db = init_db().await.unwrap();
 
-        let bot_version = bot::create_bot_version(bot_id.clone(), bot, &mut db).await.unwrap();
+        let bot_version = bot::create_bot_version(bot_id.clone(), bot, &mut db)
+            .await
+            .unwrap();
 
         let last_bot_version = bot::get_last_bot_version(&bot_id, &mut db)
-            .await.unwrap()
+            .await
+            .unwrap()
             .unwrap();
 
         assert_eq!(bot_version, last_bot_version.version_id);
 
-        let versions = bot::get_bot_versions(&bot_id, None, None, &mut db).await.unwrap();
+        let versions = bot::get_bot_versions(&bot_id, None, None, &mut db)
+            .await
+            .unwrap();
 
         assert_eq!(bot_id, versions["bots"][0]["id"].as_str().unwrap());
 
         bot::delete_bot_versions(&bot_id, &mut db).await.unwrap();
 
-        let versions = bot::get_bot_versions(&bot_id, None, None, &mut db).await.unwrap();
+        let versions = bot::get_bot_versions(&bot_id, None, None, &mut db)
+            .await
+            .unwrap();
 
         assert_eq!(0, versions["bots"].as_array().unwrap().len());
     }
@@ -108,8 +118,9 @@ mod tests {
         let mut db = init_db().await.unwrap();
         user::delete_client(&client, &mut db).await.unwrap();
 
-        let c_id =
-            conversations::create_conversation("Default", "start", &client, None, &mut db).await.unwrap();
+        let c_id = conversations::create_conversation("Default", "start", &client, None, &mut db)
+            .await
+            .unwrap();
 
         let msgs = vec![
             gen_message("1"),
@@ -120,11 +131,14 @@ mod tests {
 
         let mut data = get_conversation_info(vec![], c_id, db);
 
-        messages::add_messages_bulk(&mut data, msgs, 0, "SEND").await.unwrap();
+        messages::add_messages_bulk(&mut data, msgs, 0, "SEND")
+            .await
+            .unwrap();
 
         let response =
             messages::get_client_messages(&client, &mut data.db, Some(1), None, None, None, None)
-                .await.unwrap();
+                .await
+                .unwrap();
 
         let received_msgs: Vec<serde_json::Value> =
             serde_json::from_value(response["messages"].clone()).unwrap();
@@ -142,7 +156,8 @@ mod tests {
 
         let response =
             messages::get_client_messages(&client, &mut data.db, Some(2), None, None, None, None)
-                .await.unwrap();
+                .await
+                .unwrap();
 
         let received_msgs: Vec<serde_json::Value> =
             serde_json::from_value(response["messages"].clone()).unwrap();
@@ -158,12 +173,19 @@ mod tests {
 
         user::delete_client(&client, &mut db).await.unwrap();
 
-        conversations::create_conversation("Default", "start", &client, None, &mut db).await.unwrap();
-        conversations::create_conversation("Default", "start", &client, None, &mut db).await.unwrap();
-        conversations::create_conversation("Default", "start", &client, None, &mut db).await.unwrap();
+        conversations::create_conversation("Default", "start", &client, None, &mut db)
+            .await
+            .unwrap();
+        conversations::create_conversation("Default", "start", &client, None, &mut db)
+            .await
+            .unwrap();
+        conversations::create_conversation("Default", "start", &client, None, &mut db)
+            .await
+            .unwrap();
 
-        let response =
-            conversations::get_client_conversations(&client, &mut db, Some(6), None).await.unwrap();
+        let response = conversations::get_client_conversations(&client, &mut db, Some(6), None)
+            .await
+            .unwrap();
 
         let conversations: Vec<serde_json::Value> =
             serde_json::from_value(response["conversations"].clone()).unwrap();
@@ -172,8 +194,9 @@ mod tests {
 
         user::delete_client(&client, &mut db).await.unwrap();
 
-        let response =
-            conversations::get_client_conversations(&client, &mut db, Some(6), None).await.unwrap();
+        let response = conversations::get_client_conversations(&client, &mut db, Some(6), None)
+            .await
+            .unwrap();
 
         let conversations: Vec<serde_json::Value> =
             serde_json::from_value(response["conversations"].clone()).unwrap();
@@ -202,10 +225,13 @@ mod tests {
                 None,
                 &mut db,
             )
-            .await.unwrap();
+            .await
+            .unwrap();
         }
 
-        let response = memories::internal_use_get_memories(&client, &mut db).await.unwrap();
+        let response = memories::internal_use_get_memories(&client, &mut db)
+            .await
+            .unwrap();
         let memories: &serde_json::Map<String, serde_json::Value> = response.as_object().unwrap();
 
         assert_eq!(memories.len(), 2);
@@ -216,7 +242,9 @@ mod tests {
 
         user::delete_client(&client, &mut db).await.unwrap();
 
-        let response = memories::internal_use_get_memories(&client, &mut db).await.unwrap();
+        let response = memories::internal_use_get_memories(&client, &mut db)
+            .await
+            .unwrap();
         let memories: &serde_json::Map<String, serde_json::Value> = response.as_object().unwrap();
 
         assert_eq!(memories.len(), 0);
@@ -245,10 +273,13 @@ mod tests {
                 None,
                 &mut db,
             )
-            .await.unwrap();
+            .await
+            .unwrap();
         }
 
-        let response = memories::internal_use_get_memories(&client, &mut db).await.unwrap();
+        let response = memories::internal_use_get_memories(&client, &mut db)
+            .await
+            .unwrap();
         let memories: &serde_json::Map<String, serde_json::Value> = response.as_object().unwrap();
 
         assert_eq!(memories.len(), 2);
@@ -262,9 +293,13 @@ mod tests {
             assert_eq!(memories.get(key).unwrap(), value);
         }
 
-        memories::delete_client_memory(&client, "memory", &mut db).await.unwrap();
+        memories::delete_client_memory(&client, "memory", &mut db)
+            .await
+            .unwrap();
 
-        let response = memories::internal_use_get_memories(&client, &mut db).await.unwrap();
+        let response = memories::internal_use_get_memories(&client, &mut db)
+            .await
+            .unwrap();
         let memories: &serde_json::Map<String, serde_json::Value> = response.as_object().unwrap();
 
         assert_eq!(memories.len(), 1);
@@ -299,10 +334,13 @@ mod tests {
                 None,
                 &mut db,
             )
-            .await.unwrap();
+            .await
+            .unwrap();
         }
 
-        let response = memories::get_memory(&client, "my_key", &mut db).await.unwrap();
+        let response = memories::get_memory(&client, "my_key", &mut db)
+            .await
+            .unwrap();
 
         assert_eq!(
             serde_json::Value::String("next".to_owned()),

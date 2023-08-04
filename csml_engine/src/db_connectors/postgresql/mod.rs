@@ -46,7 +46,9 @@ pub fn make_migrations() -> Result<(), EngineError> {
     Ok(())
 }
 
-pub fn get_db<'a, 'b>(db: &'a mut Database<'b>) -> Result<&'a mut PostgresqlClient<'b>, EngineError> {
+pub fn get_db<'a, 'b>(
+    db: &'a mut Database<'b>,
+) -> Result<&'a mut PostgresqlClient<'b>, EngineError> {
     match db {
         Database::Postgresql(db) => Ok(db),
         _ => Err(EngineError::Manager(

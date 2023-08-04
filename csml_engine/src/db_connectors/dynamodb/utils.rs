@@ -5,13 +5,13 @@ use crate::{
     Client, EngineError,
 };
 
+use base64::Engine;
 use rusoto_core::RusotoError;
 use rusoto_dynamodb::{
     BatchGetItemError, BatchGetItemInput, BatchWriteItemError, BatchWriteItemInput, DynamoDb,
     GetItemError, GetItemInput,
 };
 use std::{thread, time};
-use base64::Engine;
 
 use rand::Rng;
 
@@ -133,7 +133,9 @@ pub fn execute_bot_version_batch_get_query(
                     for item in item {
                         let data: Bot = serde_dynamodb::from_hashmap(item.to_owned())?;
 
-                        let csml_bot: DynamoBot = match base64::engine::general_purpose::STANDARD.decode(&data.bot) {
+                        let csml_bot: DynamoBot = match base64::engine::general_purpose::STANDARD
+                            .decode(&data.bot)
+                        {
                             Ok(base64decoded) => {
                                 match bincode::deserialize::<DynamoBotBincode>(&base64decoded[..]) {
                                     Ok(bot) => bot.to_bot(),

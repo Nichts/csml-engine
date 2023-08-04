@@ -1,18 +1,17 @@
 pub mod models;
 
+pub mod filter;
 #[cfg(feature = "async")]
 pub mod future;
 pub mod sync;
-pub mod filter;
 
-#[cfg(feature = "pooled")]
-use diesel::r2d2::{ConnectionManager, PooledConnection, R2D2Connection};
 use crate::{
-    Client,
-    Context,
     encrypt::{decrypt_data, encrypt_data},
+    Client, Context,
 };
 use csml_interpreter::data::{CsmlBot, CsmlFlow, Message, Module};
+#[cfg(feature = "pooled")]
+use diesel::r2d2::{ConnectionManager, PooledConnection, R2D2Connection};
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 use serde::de::StdError;
 use serde::{Deserialize, Serialize};
@@ -78,10 +77,14 @@ pub fn to_serializable_bot(bot: &CsmlBot) -> SerializeCsmlBot {
         name: bot.name.to_owned(),
         flows: bot.flows.to_owned(),
         native_components: {
-            bot.native_components.to_owned().map(|value| serde_json::Value::Object(value).to_string())
+            bot.native_components
+                .to_owned()
+                .map(|value| serde_json::Value::Object(value).to_string())
         },
         custom_components: {
-            bot.custom_components.to_owned().map(|value| value.to_string())
+            bot.custom_components
+                .to_owned()
+                .map(|value| value.to_string())
         },
         default_flow: bot.default_flow.to_owned(),
         no_interruption_delay: bot.no_interruption_delay,
@@ -173,7 +176,10 @@ pub fn to_dynamo_bot(csml_bot: &CsmlBot) -> DynamoBot {
     DynamoBot {
         id: csml_bot.id.to_owned(),
         name: csml_bot.name.to_owned(),
-        custom_components: csml_bot.custom_components.to_owned().map(|value| value.to_string()),
+        custom_components: csml_bot
+            .custom_components
+            .to_owned()
+            .map(|value| value.to_string()),
         default_flow: csml_bot.default_flow.to_owned(),
         no_interruption_delay: csml_bot.no_interruption_delay,
         env: match &csml_bot.env {
@@ -243,7 +249,7 @@ impl<'a, E> AsMut<E> for Connections<'a, E> {
     fn as_mut(&mut self) -> &mut E {
         match self {
             Connections::Direct(e) => e,
-            Connections::Reference(e) => e
+            Connections::Reference(e) => e,
         }
     }
 }
@@ -261,6 +267,7 @@ pub enum Database<'a> {
 }
 
 #[cfg(feature = "async")]
+#[non_exhaustive]
 pub enum AsyncDatabase<'a> {
     #[cfg(feature = "postgresql-async")]
     Postgresql(AsyncPostgresqlClient<'a>),
@@ -274,7 +281,9 @@ pub struct SqliteClient<'a> {
 #[cfg(feature = "sqlite")]
 impl SqliteClient<'static> {
     pub fn new(client: diesel::prelude::SqliteConnection) -> Self {
-        Self { client: Connections::Direct(client)}
+        Self {
+            client: Connections::Direct(client),
+        }
     }
 }
 
@@ -286,7 +295,9 @@ pub struct PostgresqlClient<'a> {
 #[cfg(feature = "postgresql")]
 impl PostgresqlClient<'static> {
     pub fn new(client: diesel::prelude::PgConnection) -> Self {
-        Self { client: Connections::Direct(client)}
+        Self {
+            client: Connections::Direct(client),
+        }
     }
 }
 
@@ -311,7 +322,7 @@ impl MongoDbClient {
 pub struct DynamoDbClient {
     pub client: rusoto_dynamodb::DynamoDbClient,
     pub s3_client: rusoto_s3::S3Client,
-    pub runtime: tokio::runtime::Runtime
+    pub runtime: tokio::runtime::Runtime,
 }
 
 #[cfg(feature = "dynamo")]
@@ -320,7 +331,7 @@ impl DynamoDbClient {
         Self {
             client: rusoto_dynamodb::DynamoDbClient::new(dynamo_region),
             s3_client: rusoto_s3::S3Client::new(s3_region),
-            runtime: tokio::runtime::Runtime::new().unwrap()
+            runtime: tokio::runtime::Runtime::new().unwrap(),
         }
     }
 }
@@ -333,7 +344,9 @@ pub struct AsyncPostgresqlClient<'a> {
 #[cfg(feature = "postgresql-async")]
 impl AsyncPostgresqlClient<'static> {
     pub fn new(client: diesel_async::pg::AsyncPgConnection) -> Self {
-        Self { client: Connections::Direct(client)}
+        Self {
+            client: Connections::Direct(client),
+        }
     }
 }
 

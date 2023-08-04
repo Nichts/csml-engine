@@ -1,7 +1,7 @@
 use diesel::{ExpressionMethods, QueryDsl};
-use diesel_async::{RunQueryDsl};
+use diesel_async::RunQueryDsl;
 
-use crate::{BotVersion, EngineError, AsyncPostgresqlClient, SerializeCsmlBot};
+use crate::{AsyncPostgresqlClient, BotVersion, EngineError, SerializeCsmlBot};
 
 use super::{models, pagination::*, schema::cmsl_bot_versions};
 
@@ -21,7 +21,8 @@ pub async fn create_bot_version(
 
     let bot: models::Bot = diesel::insert_into(cmsl_bot_versions::table)
         .values(&newbot)
-        .get_result(db.client.as_mut()).await?;
+        .get_result(db.client.as_mut())
+        .await?;
 
     Ok(bot.id.to_string())
 }
@@ -48,7 +49,9 @@ pub async fn get_bot_versions(
         None => 25,
     };
     query = query.per_page(limit_per_page);
-    let (bot_versions, total_pages) = query.load_and_count_pages::<models::Bot>(db.client.as_mut()).await?;
+    let (bot_versions, total_pages) = query
+        .load_and_count_pages::<models::Bot>(db.client.as_mut())
+        .await?;
 
     let mut bots = vec![];
     for bot_version in bot_versions {
@@ -87,7 +90,8 @@ pub async fn get_bot_by_version_id(
 
     let result: Result<models::Bot, diesel::result::Error> = cmsl_bot_versions::table
         .filter(cmsl_bot_versions::id.eq(&version_id))
-        .get_result(db.client.as_mut()).await;
+        .get_result(db.client.as_mut())
+        .await;
 
     match result {
         Ok(bot) => {
@@ -110,7 +114,8 @@ pub async fn get_last_bot_version(
     let result: Result<models::Bot, diesel::result::Error> = cmsl_bot_versions::table
         .filter(cmsl_bot_versions::bot_id.eq(&bot_id))
         .order_by(cmsl_bot_versions::created_at.desc())
-        .get_result(db.client.as_mut()).await;
+        .get_result(db.client.as_mut())
+        .await;
 
     match result {
         Ok(bot) => {
@@ -126,7 +131,10 @@ pub async fn get_last_bot_version(
     }
 }
 
-pub async fn delete_bot_version(version_id: &str, db: &mut AsyncPostgresqlClient<'_>) -> Result<(), EngineError> {
+pub async fn delete_bot_version(
+    version_id: &str,
+    db: &mut AsyncPostgresqlClient<'_>,
+) -> Result<(), EngineError> {
     let id = match uuid::Uuid::parse_str(version_id) {
         Ok(id) => id,
         Err(..) => return Ok(()),
@@ -134,14 +142,20 @@ pub async fn delete_bot_version(version_id: &str, db: &mut AsyncPostgresqlClient
 
     diesel::delete(cmsl_bot_versions::table.filter(cmsl_bot_versions::id.eq(id)))
         .get_result::<models::Bot>(db.client.as_mut())
-        .await.ok();
+        .await
+        .ok();
 
     Ok(())
 }
 
-pub async fn delete_bot_versions(bot_id: &str, db: &mut AsyncPostgresqlClient<'_>) -> Result<(), EngineError> {
+pub async fn delete_bot_versions(
+    bot_id: &str,
+    db: &mut AsyncPostgresqlClient<'_>,
+) -> Result<(), EngineError> {
     diesel::delete(cmsl_bot_versions::table.filter(cmsl_bot_versions::bot_id.eq(bot_id)))
-        .get_result::<models::Bot>(db.client.as_mut()).await.ok();
+        .get_result::<models::Bot>(db.client.as_mut())
+        .await
+        .ok();
 
     Ok(())
 }

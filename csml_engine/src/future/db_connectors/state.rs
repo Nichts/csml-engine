@@ -1,12 +1,12 @@
 #[cfg(feature = "postgresql-async")]
 use crate::future::db_connectors::{is_postgresql, postgresql_connector};
 
-use crate::future::db_connectors::utils::*;
+use crate::data::AsyncDatabase;
 use crate::error_messages::ERROR_DB_SETUP;
-use crate::{EngineError};
+use crate::future::db_connectors::utils::*;
+use crate::EngineError;
 use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
 use csml_interpreter::data::Client;
-use crate::data::AsyncDatabase;
 
 pub async fn delete_state_key(
     client: &Client,
@@ -146,7 +146,8 @@ pub async fn set_state_items(
             _keys_values,
             expires_at,
             db,
-        ).await;
+        )
+        .await;
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
@@ -194,7 +195,8 @@ mod tests {
             None,
             &mut db,
         )
-        .await.unwrap();
+        .await
+        .unwrap();
 
         let hold = get_state_key(&client, "hold", "position", &mut db)
             .await
@@ -212,9 +214,14 @@ mod tests {
             panic!("db get hodl got the wrong value")
         }
 
-        delete_state_key(&client, "hold", "position", &mut db).await.unwrap();
+        delete_state_key(&client, "hold", "position", &mut db)
+            .await
+            .unwrap();
 
-        match get_state_key(&client, "hold", "position", &mut db).await.unwrap() {
+        match get_state_key(&client, "hold", "position", &mut db)
+            .await
+            .unwrap()
+        {
             Some(_value) => panic!(
                 "get_state_key should not have found a hold because it has deleted just before"
             ),

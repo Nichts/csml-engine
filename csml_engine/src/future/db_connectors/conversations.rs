@@ -3,10 +3,10 @@ use crate::future::db_connectors::{is_postgresql, postgresql_connector};
 
 use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
 
-use crate::future::db_connectors::{state, utils::*};
 use crate::error_messages::ERROR_DB_SETUP;
-use crate::{Client, AsyncConversationInfo, AsyncDatabase, EngineError};
+use crate::future::db_connectors::{state, utils::*};
 use crate::models::DbConversation;
+use crate::{AsyncConversationInfo, AsyncDatabase, Client, EngineError};
 
 pub async fn create_conversation(
     flow_id: &str,
@@ -46,13 +46,18 @@ pub async fn create_conversation(
         let expires_at = get_expires_at_for_postgresql(ttl);
         return postgresql_connector::conversations::create_conversation(
             flow_id, step_id, client, expires_at, db,
-        ).await;
+        )
+        .await;
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
 }
 
-pub async fn close_conversation(id: &str, client: &Client, db: &mut AsyncDatabase<'_>) -> Result<(), EngineError> {
+pub async fn close_conversation(
+    id: &str,
+    client: &Client,
+    db: &mut AsyncDatabase<'_>,
+) -> Result<(), EngineError> {
     csml_logger(
         CsmlLog::new(
             None,
@@ -78,15 +83,24 @@ pub async fn close_conversation(id: &str, client: &Client, db: &mut AsyncDatabas
     #[cfg(feature = "postgresql-async")]
     if is_postgresql() {
         let db = postgresql_connector::get_db(db)?;
-        return postgresql_connector::conversations::close_conversation(id, client, "CLOSED", db).await;
+        return postgresql_connector::conversations::close_conversation(id, client, "CLOSED", db)
+            .await;
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
 }
 
-pub async fn close_all_conversations(client: &Client, db: &mut AsyncDatabase<'_>) -> Result<(), EngineError> {
+pub async fn close_all_conversations(
+    client: &Client,
+    db: &mut AsyncDatabase<'_>,
+) -> Result<(), EngineError> {
     csml_logger(
-        CsmlLog::new(None, None, None, "db call close all conversations".to_string()),
+        CsmlLog::new(
+            None,
+            None,
+            None,
+            "db call close all conversations".to_string(),
+        ),
         LogLvl::Info,
     );
     csml_logger(
@@ -178,7 +192,8 @@ pub async fn update_conversation(
             flow_id,
             step_id,
             db,
-        ).await;
+        )
+        .await;
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
@@ -220,7 +235,8 @@ pub async fn get_client_conversations(
             db,
             limit,
             pagination_key,
-        ).await;
+        )
+        .await;
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))

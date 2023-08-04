@@ -154,7 +154,10 @@ fn query_messages_from_date(
     from_date: i64,
     _to_date: Option<i64>,
 ) -> Result<QueryOutput, EngineError> {
-    let from_date = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp_opt(from_date, 0).unwrap(), Utc);
+    let from_date = DateTime::<Utc>::from_utc(
+        NaiveDateTime::from_timestamp_opt(from_date, 0).unwrap(),
+        Utc,
+    );
     // let to_date = match to_date {
     //     Some(to_date) => {
     //         DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(to_date, 0), Utc)
@@ -285,7 +288,8 @@ pub fn get_client_messages(
 
     match data.last_evaluated_key {
         Some(pagination_key) => {
-            let pagination_key = base64::engine::general_purpose::STANDARD.encode(serde_json::json!(pagination_key).to_string());
+            let pagination_key = base64::engine::general_purpose::STANDARD
+                .encode(serde_json::json!(pagination_key).to_string());
 
             Ok(serde_json::json!({"messages": messages, "pagination_key": pagination_key}))
         }
@@ -371,7 +375,8 @@ pub fn get_client_messages_from_date(
 
     match data.last_evaluated_key {
         Some(pagination_key) => {
-            let pagination_key = base64::engine::general_purpose::STANDARD.encode(serde_json::json!(pagination_key).to_string());
+            let pagination_key = base64::engine::general_purpose::STANDARD
+                .encode(serde_json::json!(pagination_key).to_string());
 
             return Ok(serde_json::json!({"messages": messages, "pagination_key": pagination_key}));
         }

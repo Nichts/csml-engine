@@ -1,17 +1,18 @@
 use crate::{
-    CsmlBot,
-    CsmlFlow,
     data::{AsyncConversationInfo, AsyncDatabase, EngineError},
-    future::db_connectors::state::delete_state_key, future::send::send_to_callback_url,
+    future::db_connectors::state::delete_state_key,
+    future::send::send_to_callback_url,
+    CsmlBot, CsmlFlow,
 };
 
+use base64::Engine;
 use chrono::{prelude::Utc, SecondsFormat};
 use csml_interpreter::{
     data::{
         ast::{Flow, InsertStep, InstructionScope},
-        Client,
-        Context,
-        context::ContextStepInfo, csml_logs::*, Event, Interval, Memory, Message,
+        context::ContextStepInfo,
+        csml_logs::*,
+        Client, Context, Event, Interval, Memory, Message,
     },
     error_format::{ERROR_KEY_ALPHANUMERIC, ERROR_NUMBER_AS_KEY, ERROR_SIZE_IDENT},
     get_step,
@@ -21,11 +22,10 @@ use rand::seq::SliceRandom;
 use serde_json::{json, map::Map, Value};
 use std::collections::HashMap;
 use std::env;
-use base64::Engine;
 
+use crate::data::models::{CsmlRequest, FlowTrigger};
 use md5::{Digest, Md5};
 use regex::Regex;
-use crate::data::models::{CsmlRequest, FlowTrigger};
 
 /**
  * Update current context memories in place.
@@ -33,7 +33,10 @@ use crate::data::models::{CsmlRequest, FlowTrigger};
  * Instead, the memory is saved in bulk at the end of each step or interaction, but we still
  * must allow the user to use the `remembered` data immediately.
  */
-pub fn update_current_context(data: &mut AsyncConversationInfo<'_>, memories: &HashMap<String, Memory>) {
+pub fn update_current_context(
+    data: &mut AsyncConversationInfo<'_>,
+    memories: &HashMap<String, Memory>,
+) {
     for (_key, mem) in memories.iter() {
         let lit = json_to_literal(&mem.value, Interval::default(), &data.context.flow).unwrap();
 
@@ -179,7 +182,11 @@ pub async fn send_msg_to_callback_url(
 /**
  * Update ConversationInfo data with current information about the request.
  */
-fn add_info_to_message(data: &AsyncConversationInfo<'_>, mut msg: Message, interaction_order: i32) -> Value {
+fn add_info_to_message(
+    data: &AsyncConversationInfo<'_>,
+    mut msg: Message,
+    interaction_order: i32,
+) -> Value {
     let payload = msg.message_to_json();
 
     let mut map_msg: Map<String, Value> = Map::new();
@@ -312,7 +319,7 @@ pub async fn search_flow<'a>(
 
             // Thread rng is not send so we have to drop it right away
             let random_flow = {
-                let mut rng = &mut rand::thread_rng();
+                let rng = &mut rand::thread_rng();
                 random_flows.choose(rng)
             };
 
@@ -343,7 +350,7 @@ pub async fn search_flow<'a>(
 
             // Thread rng is not send so we have to drop it right away
             let random_flow = {
-                let mut rng = &mut rand::thread_rng();
+                let rng = &mut rand::thread_rng();
                 random_flows.choose(rng)
             };
 
@@ -370,7 +377,9 @@ pub fn get_current_step_hash(context: &Context, bot: &CsmlBot) -> Result<String,
 
             let ast = match &bot.bot_ast {
                 Some(ast) => {
-                    let base64decoded = base64::engine::general_purpose::STANDARD.decode(ast).unwrap();
+                    let base64decoded = base64::engine::general_purpose::STANDARD
+                        .decode(ast)
+                        .unwrap();
                     let csml_bot: HashMap<String, Flow> =
                         bincode::deserialize(&base64decoded[..]).unwrap();
                     match csml_bot.get(&context.flow) {
@@ -391,7 +400,9 @@ pub fn get_current_step_hash(context: &Context, bot: &CsmlBot) -> Result<String,
 
             match &bot.bot_ast {
                 Some(ast) => {
-                    let base64decoded = base64::engine::general_purpose::STANDARD.decode(ast).unwrap();
+                    let base64decoded = base64::engine::general_purpose::STANDARD
+                        .decode(ast)
+                        .unwrap();
                     let csml_bot: HashMap<String, Flow> =
                         bincode::deserialize(&base64decoded[..]).unwrap();
 
@@ -439,7 +450,9 @@ pub fn get_current_step_hash(context: &Context, bot: &CsmlBot) -> Result<String,
 
             let ast = match &bot.bot_ast {
                 Some(ast) => {
-                    let base64decoded = base64::engine::general_purpose::STANDARD.decode(ast).unwrap();
+                    let base64decoded = base64::engine::general_purpose::STANDARD
+                        .decode(ast)
+                        .unwrap();
                     let csml_bot: HashMap<String, Flow> =
                         bincode::deserialize(&base64decoded[..]).unwrap();
 
@@ -463,7 +476,9 @@ pub fn get_current_step_hash(context: &Context, bot: &CsmlBot) -> Result<String,
     Ok(format!("{:x}", hash.finalize()))
 }
 
-pub async fn clean_hold_and_restart(data: &mut AsyncConversationInfo<'_>) -> Result<(), EngineError> {
+pub async fn clean_hold_and_restart(
+    data: &mut AsyncConversationInfo<'_>,
+) -> Result<(), EngineError> {
     delete_state_key(&data.client, "hold", "position", &mut data.db).await?;
     data.context.hold = None;
     Ok(())

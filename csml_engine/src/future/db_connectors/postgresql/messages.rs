@@ -1,10 +1,10 @@
 use diesel::{ExpressionMethods, QueryDsl};
-use diesel_async::{RunQueryDsl};
+use diesel_async::RunQueryDsl;
 
 use crate::{
-    future::db_connectors::postgresql::get_db,
     encrypt::{decrypt_data, encrypt_data},
-    Client, AsyncConversationInfo, EngineError, AsyncPostgresqlClient,
+    future::db_connectors::postgresql::get_db,
+    AsyncConversationInfo, AsyncPostgresqlClient, Client, EngineError,
 };
 
 use super::{
@@ -12,9 +12,9 @@ use super::{
     pagination::*,
     schema::{csml_conversations, csml_messages},
 };
+use crate::data::filter::ClientMessageFilter;
 use chrono::NaiveDateTime;
 use uuid::Uuid;
-use crate::data::filter::ClientMessageFilter;
 
 pub async fn add_messages_bulk(
     data: &mut AsyncConversationInfo<'_>,
@@ -53,17 +53,22 @@ pub async fn add_messages_bulk(
 
     diesel::insert_into(csml_messages::table)
         .values(&new_messages)
-        .get_result::<models::Message>(db.client.as_mut()).await?;
+        .get_result::<models::Message>(db.client.as_mut())
+        .await?;
 
     Ok(())
 }
 
-pub async fn delete_user_messages(client: &Client, db: &mut AsyncPostgresqlClient<'_>) -> Result<(), EngineError> {
+pub async fn delete_user_messages(
+    client: &Client,
+    db: &mut AsyncPostgresqlClient<'_>,
+) -> Result<(), EngineError> {
     let conversations: Vec<models::Conversation> = csml_conversations::table
         .filter(csml_conversations::bot_id.eq(&client.bot_id))
         .filter(csml_conversations::channel_id.eq(&client.channel_id))
         .filter(csml_conversations::user_id.eq(&client.user_id))
-        .load(db.client.as_mut()).await?;
+        .load(db.client.as_mut())
+        .await?;
 
     for conversation in conversations {
         diesel::delete(
@@ -81,7 +86,14 @@ pub async fn get_client_messages<'conn, 'a: 'conn>(
     db: &'a mut AsyncPostgresqlClient<'conn>,
     filter: ClientMessageFilter<'a>,
 ) -> Result<serde_json::Value, EngineError> {
-    let ClientMessageFilter { client, limit, pagination_key, from_date, to_date, conversation_id } = filter;
+    let ClientMessageFilter {
+        client,
+        limit,
+        pagination_key,
+        from_date,
+        to_date,
+        conversation_id,
+    } = filter;
 
     let pagination_key = match pagination_key {
         Some(paginate) => paginate.parse::<i64>().unwrap_or(1),
@@ -89,8 +101,29 @@ pub async fn get_client_messages<'conn, 'a: 'conn>(
     };
 
     let (conversation_with_messages, total_pages) = match conversation_id {
-        None => get_messages_without_conversation_filter(&client, db, limit, from_date, to_date, pagination_key).await?,
-        Some(conv_id) => get_messages_with_conversation_filter(&client, db, limit, from_date, to_date, pagination_key, conv_id).await?
+        None => {
+            get_messages_without_conversation_filter(
+                &client,
+                db,
+                limit,
+                from_date,
+                to_date,
+                pagination_key,
+            )
+            .await?
+        }
+        Some(conv_id) => {
+            get_messages_with_conversation_filter(
+                &client,
+                db,
+                limit,
+                from_date,
+                to_date,
+                pagination_key,
+                conv_id,
+            )
+            .await?
+        }
     };
 
     let (_, messages): (Vec<_>, Vec<_>) = conversation_with_messages.into_iter().unzip();
@@ -130,7 +163,8 @@ pub(crate) async fn get_messages_without_conversation_filter(
     db: &mut AsyncPostgresqlClient<'_>,
     limit_per_page: i64,
     from_date: Option<i64>,
-    to_date: Option<i64>, pagination_key: i64
+    to_date: Option<i64>,
+    pagination_key: i64,
 ) -> Result<(Vec<(models::Conversation, models::Message)>, i64), EngineError> {
     let client = client.to_owned();
     let res = match from_date {
@@ -185,7 +219,8 @@ async fn get_messages_with_conversation_filter(
     db: &mut AsyncPostgresqlClient<'_>,
     limit_per_page: i64,
     from_date: Option<i64>,
-    to_date: Option<i64>, pagination_key: i64,
+    to_date: Option<i64>,
+    pagination_key: i64,
     conversation_id: String,
 ) -> Result<(Vec<(models::Conversation, models::Message)>, i64), EngineError> {
     let id = Uuid::parse_str(&conversation_id)?;

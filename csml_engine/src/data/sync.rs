@@ -1,7 +1,7 @@
-use csml_interpreter::data::CsmlBot;
-use crate::data::{Database, EngineError};
 use crate::data::models::BotOpt;
+use crate::data::{Database, EngineError};
 use crate::db_connectors;
+use csml_interpreter::data::CsmlBot;
 
 impl BotOpt {
     pub fn search_bot(&self, db: &mut Database) -> Result<CsmlBot, EngineError> {

@@ -1,11 +1,11 @@
 #[cfg(feature = "postgresql-async")]
 use crate::future::db_connectors::{is_postgresql, postgresql_connector};
 
+use crate::data::AsyncDatabase;
 use crate::error_messages::ERROR_DB_SETUP;
+use crate::models::BotVersion;
 use crate::{CsmlBot, EngineError};
 use csml_interpreter::data::csml_logs::*;
-use crate::data::AsyncDatabase;
-use crate::models::BotVersion;
 
 pub async fn create_bot_version(
     bot_id: String,
@@ -139,7 +139,8 @@ pub async fn get_bot_versions(
     #[cfg(feature = "postgresql-async")]
     if is_postgresql() {
         let db = postgresql_connector::get_db(db)?;
-        return postgresql_connector::bot::get_bot_versions(bot_id, limit, pagination_key, db).await;
+        return postgresql_connector::bot::get_bot_versions(bot_id, limit, pagination_key, db)
+            .await;
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
@@ -178,7 +179,10 @@ pub async fn delete_bot_version(
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
 }
 
-pub async fn delete_bot_versions(bot_id: &str, db: &mut AsyncDatabase<'_>) -> Result<(), EngineError> {
+pub async fn delete_bot_versions(
+    bot_id: &str,
+    db: &mut AsyncDatabase<'_>,
+) -> Result<(), EngineError> {
     csml_logger(
         CsmlLog::new(None, None, None, "db call delete bot versions".to_string()),
         LogLvl::Info,
@@ -202,7 +206,10 @@ pub async fn delete_bot_versions(bot_id: &str, db: &mut AsyncDatabase<'_>) -> Re
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
 }
 
-pub async fn delete_all_bot_data(bot_id: &str, db: &mut AsyncDatabase<'_>) -> Result<(), EngineError> {
+pub async fn delete_all_bot_data(
+    bot_id: &str,
+    db: &mut AsyncDatabase<'_>,
+) -> Result<(), EngineError> {
     csml_logger(
         CsmlLog::new(None, None, None, "db call delete all bot data".to_string()),
         LogLvl::Info,

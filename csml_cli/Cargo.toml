@@ -9,9 +9,9 @@ csml_engine = { path = "../csml_engine" }
 csml_interpreter = { path = "../csml_interpreter" }
 
 
-serde = { version = "1.0.126", features = ["derive"] }
-serde_json = "1.0.64"
-serde_yaml = "0.9.19"
+serde = { version = "1.0.181", features = ["derive"] }
+serde_json = "1.0.104"
+serde_yaml = "0.9.25"
 
 crossterm = "0.26.1"
 tui = { version = "0.19.0", default-features = false, features = ['crossterm'] }
@@ -21,7 +21,7 @@ viuer = "0.6.2"
 
 rand = "0.8.4"
 
-clap = "4.2.1"
-clap_derive = "4.2.0"
-git2 = "0.17.0"
+clap = "4.3.19"
+clap_derive = "4.3.12"
+git2 = "0.17.2"
 dotenv = "0.15.0"

@@ -1,21 +1,21 @@
 pub mod models;
 
+use crate::data::*;
 use crate::db_connectors::{conversations::*, memories::*, messages::*, state::*};
 use crate::utils::*;
-use crate::{data::*};
 
 use csml_interpreter::data::context::ContextStepInfo;
 use csml_interpreter::{
     data::{
-        ast::ForgetMemory, Client, csml_bot::CsmlBot, csml_flow::CsmlFlow, csml_logs::*, Event,
-        Hold, Memory, Message, MSG, MultiBot,
+        ast::ForgetMemory, csml_bot::CsmlBot, csml_flow::CsmlFlow, csml_logs::*, Client, Event,
+        Hold, Memory, Message, MultiBot, MSG,
     },
     interpret,
 };
+pub use models::{InterpreterReturn, SwitchBot};
 use serde_json::{map::Map, Value};
 use std::collections::HashMap;
 use std::{sync::mpsc, thread};
-pub use models::{InterpreterReturn, SwitchBot};
 
 /**
  * This is the CSML Engine action.
@@ -278,9 +278,7 @@ fn manage_switch_bot<'a>(
                 data,
                 vec![Message {
                     content_type: "error".to_owned(),
-                    content: serde_json::json!({
-                        "error": error_message
-                    }),
+                    content: serde_json::json!({ "error": error_message }),
                 }],
                 *interaction_order,
                 true,

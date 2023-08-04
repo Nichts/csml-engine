@@ -311,7 +311,12 @@ pub fn delete_client_memories(client: &Client, db: &mut Database) -> Result<(), 
         LogLvl::Info,
     );
     csml_logger(
-        CsmlLog::new(Some(client), None, None, "db call delete memories".to_string()),
+        CsmlLog::new(
+            Some(client),
+            None,
+            None,
+            "db call delete memories".to_string(),
+        ),
         LogLvl::Debug,
     );
 

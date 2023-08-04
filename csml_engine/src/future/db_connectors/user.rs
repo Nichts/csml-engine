@@ -1,10 +1,10 @@
 #[cfg(feature = "postgresql-async")]
 use crate::future::db_connectors::{is_postgresql, postgresql_connector};
 
+use crate::data::AsyncDatabase;
 use crate::error_messages::ERROR_DB_SETUP;
 use crate::{Client, EngineError};
 use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
-use crate::data::AsyncDatabase;
 
 pub async fn delete_client(client: &Client, db: &mut AsyncDatabase<'_>) -> Result<(), EngineError> {
     csml_logger(
@@ -12,7 +12,12 @@ pub async fn delete_client(client: &Client, db: &mut AsyncDatabase<'_>) -> Resul
         LogLvl::Info,
     );
     csml_logger(
-        CsmlLog::new(Some(client), None, None, "db call delete client".to_string()),
+        CsmlLog::new(
+            Some(client),
+            None,
+            None,
+            "db call delete client".to_string(),
+        ),
         LogLvl::Debug,
     );
 
