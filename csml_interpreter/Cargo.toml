@@ -51,7 +51,7 @@ base64 = "0.21.2"
 hex = "0.4.3"
 openssl = { version = "0.10.55", features = ["vendored"] }
 uuid = { version = "1.4.1", features = ["serde", "v4", "v1"] }
-log = "0.4.19"
+log = "0.4.17"
 env_logger= "0.10.0"
 
 [[example]]
