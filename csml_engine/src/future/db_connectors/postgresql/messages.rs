@@ -221,9 +221,8 @@ async fn get_messages_with_conversation_filter(
     from_date: Option<i64>,
     to_date: Option<i64>,
     pagination_key: i64,
-    conversation_id: String,
+    conversation_id: Uuid,
 ) -> Result<(Vec<(models::Conversation, models::Message)>, i64), EngineError> {
-    let id = Uuid::parse_str(&conversation_id)?;
     let client = client.to_owned();
     let res = match from_date {
         Some(from_date) => {
@@ -241,7 +240,7 @@ async fn get_messages_with_conversation_filter(
                 .filter(csml_conversations::bot_id.eq(client.bot_id))
                 .filter(csml_conversations::channel_id.eq(client.channel_id))
                 .filter(csml_conversations::user_id.eq(client.user_id))
-                .filter(csml_conversations::id.eq(id))
+                .filter(csml_conversations::id.eq(conversation_id))
                 .inner_join(csml_messages::table)
                 .filter(csml_messages::created_at.ge(from_date))
                 .filter(csml_messages::created_at.le(to_date))
@@ -259,7 +258,7 @@ async fn get_messages_with_conversation_filter(
                 .filter(csml_conversations::bot_id.eq(client.bot_id))
                 .filter(csml_conversations::channel_id.eq(client.channel_id))
                 .filter(csml_conversations::user_id.eq(client.user_id))
-                .filter(csml_conversations::id.eq(id))
+                .filter(csml_conversations::id.eq(conversation_id))
                 .inner_join(csml_messages::table)
                 .select((csml_conversations::all_columns, csml_messages::all_columns))
                 .order_by(csml_messages::created_at.desc())

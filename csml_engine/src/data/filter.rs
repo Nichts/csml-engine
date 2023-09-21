@@ -1,5 +1,6 @@
 use csml_interpreter::data::Client;
 use typed_builder::TypedBuilder;
+use uuid::Uuid;
 
 #[derive(TypedBuilder, Debug, Clone)]
 pub struct ClientMessageFilter<'a> {
@@ -13,7 +14,7 @@ pub struct ClientMessageFilter<'a> {
     #[builder(default)]
     pub to_date: Option<i64>,
     #[builder(setter(into), default)]
-    pub conversation_id: Option<String>,
+    pub conversation_id: Option<Uuid>,
 }
 
 #[cfg(test)]
