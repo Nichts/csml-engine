@@ -1,7 +1,7 @@
 use csml_interpreter::data::Client;
 use typed_builder::TypedBuilder;
 
-#[derive(TypedBuilder, Debug)]
+#[derive(TypedBuilder, Debug, Clone)]
 pub struct ClientMessageFilter<'a> {
     pub client: &'a Client,
     #[builder(default = 25)]
