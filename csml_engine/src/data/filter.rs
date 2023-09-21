@@ -3,17 +3,17 @@ use typed_builder::TypedBuilder;
 
 #[derive(TypedBuilder, Debug)]
 pub struct ClientMessageFilter<'a> {
-    pub(crate) client: &'a Client,
+    pub client: &'a Client,
     #[builder(default = 25)]
-    pub(crate) limit: i64,
+    pub limit: i64,
     #[builder(setter(into), default)]
-    pub(crate) pagination_key: Option<String>,
+    pub pagination_key: Option<String>,
     #[builder(default)]
-    pub(crate) from_date: Option<i64>,
+    pub from_date: Option<i64>,
     #[builder(default)]
-    pub(crate) to_date: Option<i64>,
+    pub to_date: Option<i64>,
     #[builder(setter(into), default)]
-    pub(crate) conversation_id: Option<String>,
+    pub conversation_id: Option<String>,
 }
 
 #[cfg(test)]
