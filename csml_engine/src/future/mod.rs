@@ -37,6 +37,7 @@ use chrono::prelude::*;
 use csml_interpreter::data::{csml_bot::CsmlBot, Hold, IndexInfo};
 use futures::future::{BoxFuture, FutureExt};
 use std::{collections::HashMap, env};
+use uuid::Uuid;
 
 pub async fn start_conversation_db(
     request: CsmlRequest,
@@ -250,6 +251,16 @@ pub async fn get_client_messages_filtered<'conn, 'a: 'conn>(
 
     messages::get_client_messages(db, filter).await
 }
+
+pub async fn get_conversation<'conn, 'a: 'conn>(
+    db: &'a mut AsyncDatabase<'conn>,
+    id: Uuid
+) -> Result<serde_json::Value, EngineError> {
+    init_logger();
+
+    conversations::get_conversation(db, id).await
+}
+
 
 pub async fn get_client_conversations(
     client: &Client,

@@ -50,6 +50,7 @@ use data::models::{BotOpt, CsmlRequest};
 use interpreter_actions::models::SwitchBot;
 use models::{BotVersion, BotVersionCreated, DbConversation};
 use std::{collections::HashMap, env};
+use uuid::Uuid;
 
 pub fn start_conversation_db(
     request: CsmlRequest,
@@ -251,6 +252,15 @@ pub fn get_client_messages_filtered(
     init_logger();
 
     messages::get_client_messages(db, filter)
+}
+
+pub fn get_conversation(
+    db: &mut Database,
+    id: Uuid,
+) -> Result<serde_json::Value, EngineError> {
+    init_logger();
+
+    conversations::get_conversation(db, id)
 }
 
 pub fn get_client_conversations(
