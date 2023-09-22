@@ -313,10 +313,7 @@ pub fn update_conversation(
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
 }
 
-pub fn get_conversation(
-    db: &mut Database,
-    id: Uuid,
-) -> Result<serde_json::Value, EngineError> {
+pub fn get_conversation(db: &mut Database, id: Uuid) -> Result<serde_json::Value, EngineError> {
     csml_logger(
         CsmlLog::new(
             None,

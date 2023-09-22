@@ -254,13 +254,12 @@ pub async fn get_client_messages_filtered<'conn, 'a: 'conn>(
 
 pub async fn get_conversation<'conn, 'a: 'conn>(
     db: &'a mut AsyncDatabase<'conn>,
-    id: Uuid
+    id: Uuid,
 ) -> Result<serde_json::Value, EngineError> {
     init_logger();
 
     conversations::get_conversation(db, id).await
 }
-
 
 pub async fn get_client_conversations(
     client: &Client,

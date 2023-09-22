@@ -23,7 +23,7 @@ pub fn capture_variables(
     flow_name: &str,
 ) {
     if literal.content_type == "closure" {
-        let mut closure = Literal::get_mut_value::<PrimitiveClosure>(
+        let closure = Literal::get_mut_value::<PrimitiveClosure>(
             &mut literal.primitive,
             flow_name,
             literal.interval,

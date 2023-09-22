@@ -405,18 +405,18 @@ pub enum EngineError {
     Base64(base64::DecodeError),
     UUID(uuid::Error),
 
-    #[cfg(any(feature = "mongo"))]
+    #[cfg(feature = "mongo")]
     BsonDecoder(bson::de::Error),
-    #[cfg(any(feature = "mongo"))]
+    #[cfg(feature = "mongo")]
     BsonEncoder(bson::ser::Error),
-    #[cfg(any(feature = "mongo"))]
+    #[cfg(feature = "mongo")]
     MongoDB(mongodb::error::Error),
 
-    #[cfg(any(feature = "dynamo"))]
+    #[cfg(feature = "dynamo")]
     Rusoto(String),
-    #[cfg(any(feature = "dynamo"))]
+    #[cfg(feature = "dynamo")]
     SerdeDynamodb(serde_dynamodb::Error),
-    #[cfg(any(feature = "dynamo"))]
+    #[cfg(feature = "dynamo")]
     S3ErrorCode(u16),
 
     #[cfg(any(feature = "postgresql", feature = "sqlite"))]
@@ -475,35 +475,35 @@ impl From<base64::DecodeError> for EngineError {
     }
 }
 
-#[cfg(any(feature = "mongo"))]
+#[cfg(feature = "mongo")]
 impl From<bson::de::Error> for EngineError {
     fn from(e: bson::de::Error) -> Self {
         EngineError::BsonDecoder(e)
     }
 }
 
-#[cfg(any(feature = "mongo"))]
+#[cfg(feature = "mongo")]
 impl From<bson::ser::Error> for EngineError {
     fn from(e: bson::ser::Error) -> Self {
         EngineError::BsonEncoder(e)
     }
 }
 
-#[cfg(any(feature = "mongo"))]
+#[cfg(feature = "mongo")]
 impl From<mongodb::error::Error> for EngineError {
     fn from(e: mongodb::error::Error) -> Self {
         EngineError::MongoDB(e)
     }
 }
 
-#[cfg(any(feature = "dynamo"))]
+#[cfg(feature = "dynamo")]
 impl<E: std::error::Error + 'static> From<rusoto_core::RusotoError<E>> for EngineError {
     fn from(e: rusoto_core::RusotoError<E>) -> Self {
         EngineError::Rusoto(e.to_string())
     }
 }
 
-#[cfg(any(feature = "dynamo"))]
+#[cfg(feature = "dynamo")]
 impl From<serde_dynamodb::Error> for EngineError {
     fn from(e: serde_dynamodb::Error) -> Self {
         EngineError::SerdeDynamodb(e)

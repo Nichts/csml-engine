@@ -76,7 +76,6 @@ fn main() {
 
         stdin()
             .read_line(&mut line)
-            .ok()
             .expect("Failed to read line :)");
         if line.trim().is_empty() {
             continue;

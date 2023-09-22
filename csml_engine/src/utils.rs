@@ -328,7 +328,7 @@ pub fn search_flow<'a>(
                 let contains_command = flow
                     .commands
                     .iter()
-                    .any(|cmd| &cmd.as_str().to_lowercase() == &event.content_value.to_lowercase());
+                    .any(|cmd| cmd.as_str().to_lowercase() == event.content_value.to_lowercase());
 
                 if contains_command {
                     random_flows.push(flow)

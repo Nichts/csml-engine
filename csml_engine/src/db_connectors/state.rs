@@ -314,7 +314,10 @@ mod tests {
 
         delete_state_key(&client, "hold", "position", &mut db).unwrap();
 
-        if let Some(_) = get_state_key(&client, "hold", "position", &mut db).unwrap() {
+        if get_state_key(&client, "hold", "position", &mut db)
+            .unwrap()
+            .is_some()
+        {
             panic!("get_state_key should not have found a hold because it has deleted just before")
         }
     }
