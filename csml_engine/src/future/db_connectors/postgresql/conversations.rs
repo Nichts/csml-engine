@@ -4,6 +4,8 @@ use diesel_async::RunQueryDsl;
 use crate::models::DbConversation;
 use crate::{AsyncPostgresqlClient, Client, EngineError};
 use chrono::NaiveDateTime;
+use uuid::Uuid;
+use crate::future::db_connectors::postgresql::models::utils::conversation_to_json;
 
 use super::{models, pagination::*, schema::csml_conversations};
 
@@ -159,6 +161,13 @@ pub async fn delete_user_conversations(
     Ok(())
 }
 
+pub async fn get_conversation(db: &mut AsyncPostgresqlClient<'_>, id: Uuid) -> Result<serde_json::Value, EngineError> {
+    let conversation = csml_conversations::table.find(id)
+        .first(db.client.as_mut()).await?;
+
+    Ok(conversation_to_json(conversation))
+}
+
 pub async fn get_client_conversations(
     client: &Client,
     db: &mut AsyncPostgresqlClient<'_>,
@@ -190,19 +199,7 @@ pub async fn get_client_conversations(
 
     let mut convs = vec![];
     for conversation in conversations {
-        let json = serde_json::json!({
-            "client": {
-                "bot_id": conversation.bot_id,
-                "channel_id": conversation.channel_id,
-                "user_id": conversation.user_id
-            },
-            "flow_id": conversation.flow_id,
-            "step_id": conversation.step_id,
-            "status": conversation.status,
-            "last_interaction_at": conversation.last_interaction_at.format("%Y-%m-%dT%H:%M:%S%.fZ").to_string(),
-            "updated_at": conversation.updated_at.format("%Y-%m-%dT%H:%M:%S%.fZ").to_string(),
-            "created_at": conversation.created_at.format("%Y-%m-%dT%H:%M:%S%.fZ").to_string()
-        });
+        let json = conversation_to_json(conversation);
 
         convs.push(json);
     }

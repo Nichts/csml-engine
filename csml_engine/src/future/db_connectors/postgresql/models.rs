@@ -1,3 +1,5 @@
+pub mod utils;
+
 use super::schema::*;
 use chrono::NaiveDateTime;
 use diesel::{Associations, Identifiable, Insertable, Queryable};

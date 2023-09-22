@@ -1,3 +1,5 @@
+pub mod utils;
+
 use diesel::{Associations, Identifiable, Insertable, Queryable};
 
 use diesel::deserialize::{self, FromSql};

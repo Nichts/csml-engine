@@ -1,3 +1,4 @@
+use uuid::Uuid;
 #[cfg(feature = "dynamo")]
 use crate::db_connectors::{dynamodb_connector, is_dynamodb};
 #[cfg(feature = "mongo")]
@@ -306,6 +307,32 @@ pub fn update_conversation(
             flow_id,
             step_id,
             db,
+        );
+    }
+
+    Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
+}
+
+pub fn get_client_conversation(
+    db: &mut Database,
+    id: Uuid,
+) -> Result<serde_json::Value, EngineError> {
+    csml_logger(
+        CsmlLog::new(
+            None,
+            None,
+            None,
+            format!("db call get client conversation"),
+        ),
+        LogLvl::Info,
+    );
+
+    #[cfg(feature = "sqlite")]
+    if is_sqlite() {
+        let db = sqlite_connector::get_db(db)?;
+        return sqlite_connector::conversations::get_conversation(
+            db,
+            id
         );
     }
 

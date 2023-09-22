@@ -1,3 +1,4 @@
+use uuid::Uuid;
 #[cfg(feature = "postgresql-async")]
 use crate::future::db_connectors::{is_postgresql, postgresql_connector};
 
@@ -194,6 +195,32 @@ pub async fn update_conversation(
             db,
         )
         .await;
+    }
+
+    Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
+}
+
+pub async fn get_conversation(
+    db: &mut AsyncDatabase<'_>,
+    id: Uuid,
+) -> Result<serde_json::Value, EngineError> {
+    csml_logger(
+        CsmlLog::new(
+            None,
+            None,
+            None,
+            format!("db call get client conversation"),
+        ),
+        LogLvl::Info,
+    );
+
+    #[cfg(feature = "postgresql-async")]
+    if is_postgresql() {
+        let db = postgresql_connector::get_db(db)?;
+        return postgresql_connector::conversations::get_conversation(
+            db,
+            id,
+        ).await;
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
