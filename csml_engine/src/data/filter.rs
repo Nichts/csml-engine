@@ -30,7 +30,7 @@ mod tests {
         println!("Empty Filter: {empty_filter:?}");
 
         assert!(matches!(empty_filter, ClientMessageFilter {
-            client: &Client { ref bot_id, .. },
+            client: Client { bot_id, .. },
             limit: 25,
             ..
         } if bot_id == "Testing" ));

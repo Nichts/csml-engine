@@ -1,10 +1,10 @@
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 
+use crate::db_connectors::sqlite::models::utils::conversation_to_json;
 use crate::models::DbConversation;
 use crate::{Client, EngineError, SqliteClient};
 use chrono::NaiveDateTime;
 use uuid::Uuid;
-use crate::db_connectors::sqlite::models::utils::conversation_to_json;
 
 use super::{models, pagination::*, schema::csml_conversations};
 
@@ -195,7 +195,8 @@ pub fn get_client_conversations(
 }
 
 pub fn get_conversation(db: &mut SqliteClient, id: Uuid) -> Result<serde_json::Value, EngineError> {
-    let conversation = csml_conversations::table.find(models::UUID(id))
+    let conversation = csml_conversations::table
+        .find(models::UUID(id))
         .first(db.client.as_mut())?;
 
     Ok(conversation_to_json(conversation))

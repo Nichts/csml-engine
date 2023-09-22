@@ -1,6 +1,6 @@
-use uuid::Uuid;
 #[cfg(feature = "postgresql-async")]
 use crate::future::db_connectors::{is_postgresql, postgresql_connector};
+use uuid::Uuid;
 
 use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
 
@@ -205,22 +205,14 @@ pub async fn get_conversation(
     id: Uuid,
 ) -> Result<serde_json::Value, EngineError> {
     csml_logger(
-        CsmlLog::new(
-            None,
-            None,
-            None,
-            format!("db call get client conversation"),
-        ),
+        CsmlLog::new(None, None, None, format!("db call get client conversation")),
         LogLvl::Info,
     );
 
     #[cfg(feature = "postgresql-async")]
     if is_postgresql() {
         let db = postgresql_connector::get_db(db)?;
-        return postgresql_connector::conversations::get_conversation(
-            db,
-            id,
-        ).await;
+        return postgresql_connector::conversations::get_conversation(db, id).await;
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))

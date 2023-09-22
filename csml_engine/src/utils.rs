@@ -252,7 +252,7 @@ pub fn get_flow_by_id<'a>(f_id: &str, flows: &'a [CsmlFlow]) -> Result<&'a CsmlF
  * Retrieve a bot's default flow.
  * The default flow must exist!
  */
-pub fn get_default_flow<'a>(bot: &'a CsmlBot) -> Result<&'a CsmlFlow, EngineError> {
+pub fn get_default_flow(bot: &CsmlBot) -> Result<&CsmlFlow, EngineError> {
     match bot
         .flows
         .iter()

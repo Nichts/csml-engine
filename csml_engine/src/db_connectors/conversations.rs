@@ -1,4 +1,3 @@
-use uuid::Uuid;
 #[cfg(feature = "dynamo")]
 use crate::db_connectors::{dynamodb_connector, is_dynamodb};
 #[cfg(feature = "mongo")]
@@ -7,6 +6,7 @@ use crate::db_connectors::{is_mongodb, mongodb_connector};
 use crate::db_connectors::{is_postgresql, postgresql_connector};
 #[cfg(feature = "sqlite")]
 use crate::db_connectors::{is_sqlite, sqlite_connector};
+use uuid::Uuid;
 
 use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
 
@@ -322,7 +322,7 @@ pub fn get_client_conversation(
             None,
             None,
             None,
-            format!("db call get client conversation"),
+            "db call get client conversation".to_string(),
         ),
         LogLvl::Info,
     );
@@ -330,10 +330,7 @@ pub fn get_client_conversation(
     #[cfg(feature = "sqlite")]
     if is_sqlite() {
         let db = sqlite_connector::get_db(db)?;
-        return sqlite_connector::conversations::get_conversation(
-            db,
-            id
-        );
+        return sqlite_connector::conversations::get_conversation(db, id);
     }
 
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))

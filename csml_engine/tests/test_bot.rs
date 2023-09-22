@@ -174,8 +174,8 @@ fn ok_test_hold() {
 
     delete_client(&Client {
         user_id: "test".to_owned(),
-        bot_id: bot_id,
-        channel_id: channel_id,
+        bot_id,
+        channel_id,
     })
     .unwrap();
 }
@@ -233,8 +233,8 @@ fn ok_test_import() {
 
     delete_client(&Client {
         user_id: "test".to_owned(),
-        bot_id: bot_id,
-        channel_id: channel_id,
+        bot_id,
+        channel_id,
     })
     .unwrap();
 }
@@ -292,8 +292,8 @@ fn ok_test_commands() {
 
     delete_client(&Client {
         user_id: "test".to_owned(),
-        bot_id: bot_id,
-        channel_id: channel_id,
+        bot_id,
+        channel_id,
     })
     .unwrap();
 }
@@ -351,8 +351,8 @@ fn ok_test_goto_var() {
 
     delete_client(&Client {
         user_id: "test".to_owned(),
-        bot_id: bot_id,
-        channel_id: channel_id,
+        bot_id,
+        channel_id,
     })
     .unwrap();
 }
@@ -421,8 +421,8 @@ fn ok_test_memory() {
 
     delete_client(&Client {
         user_id: "test".to_owned(),
-        bot_id: bot_id,
-        channel_id: channel_id,
+        bot_id,
+        channel_id,
     })
     .unwrap();
 }

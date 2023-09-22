@@ -95,7 +95,7 @@ pub fn get_client_messages(
 
     let (conversation_with_messages, total_pages) = match conversation_id {
         None => get_messages_without_conversation_filter(
-            &client,
+            client,
             db,
             limit,
             from_date,
@@ -103,7 +103,7 @@ pub fn get_client_messages(
             pagination_key,
         )?,
         Some(conv_id) => get_messages_with_conversation_filter(
-            &client,
+            client,
             db,
             limit,
             from_date,

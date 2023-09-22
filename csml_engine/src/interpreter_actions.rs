@@ -244,10 +244,10 @@ pub fn interpret_step(
     ))
 }
 
-fn manage_switch_bot<'a>(
+fn manage_switch_bot(
     data: &mut ConversationInfo,
     interaction_order: &mut i32,
-    bot: &'a CsmlBot,
+    bot: &CsmlBot,
     flow: Option<String>,
     step: Option<ContextStepInfo>,
     target_bot: String,
