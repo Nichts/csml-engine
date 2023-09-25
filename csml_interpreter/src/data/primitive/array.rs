@@ -700,7 +700,7 @@ impl PrimitiveArray {
                     .to_owned();
 
                     if int_start < 0 {
-                        int_start = len as i64 + int_start;
+                        int_start += len as i64;
                     }
 
                     let start = match int_start {
@@ -713,10 +713,7 @@ impl PrimitiveArray {
                         }
                     };
 
-                    let value = array.value[start..]
-                        .iter()
-                        .cloned()
-                        .collect::<Vec<Literal>>();
+                    let value = array.value[start..].to_vec();
 
                     Ok(PrimitiveArray::get_literal(&value, interval))
                 }
@@ -743,11 +740,11 @@ impl PrimitiveArray {
                     .to_owned();
 
                     if int_start < 0 {
-                        int_start = len as i64 + int_start;
+                        int_start += len as i64;
                     }
 
                     if int_end.is_negative() {
-                        int_end = len as i64 + int_end;
+                        int_end += len as i64;
                     }
                     if int_end < int_start {
                         return Err(gen_error_info(
@@ -772,10 +769,7 @@ impl PrimitiveArray {
                             ))
                         }
                     };
-                    let value = array.value[start..end]
-                        .iter()
-                        .cloned()
-                        .collect::<Vec<Literal>>();
+                    let value = array.value[start..end].to_vec();
 
                     Ok(PrimitiveArray::get_literal(&value, interval))
                 }
@@ -870,7 +864,7 @@ impl PrimitiveArray {
     ) -> Result<Literal, ErrorInfo> {
         let usage = "flatten() => [Literal]";
 
-        if args.len() != 0 {
+        if !args.is_empty() {
             return Err(gen_error_info(
                 Position::new(interval, &data.context.flow),
                 format!("usage: {}", usage),
@@ -921,8 +915,8 @@ impl PrimitiveArray {
                 )?;
 
                 let mut vec = vec![];
-                let mut context = init_child_context(&data);
-                let mut step_count = data.step_count.clone();
+                let mut context = init_child_context(data);
+                let mut step_count = *data.step_count;
                 let mut new_scope_data = init_child_scope(data, &mut context, &mut step_count);
 
                 if let Some(memories) = closure.enclosed_variables.clone() {
@@ -996,8 +990,8 @@ impl PrimitiveArray {
 
                 let mut vec = vec![];
 
-                let mut context = init_child_context(&data);
-                let mut step_count = data.step_count.clone();
+                let mut context = init_child_context(data);
+                let mut step_count = *data.step_count;
                 let mut new_scope_data = init_child_scope(data, &mut context, &mut step_count);
 
                 if let Some(memories) = closure.enclosed_variables.clone() {
@@ -1075,8 +1069,8 @@ impl PrimitiveArray {
                     format!("usage: {}", usage),
                 )?;
 
-                let mut context = init_child_context(&data);
-                let mut step_count = data.step_count.clone();
+                let mut context = init_child_context(data);
+                let mut step_count = *data.step_count;
                 let mut new_scope_data = init_child_scope(data, &mut context, &mut step_count);
 
                 for (index, value) in array.value.iter().enumerate() {
@@ -1307,7 +1301,7 @@ impl Primitive for PrimitiveArray {
             if *mem_type == MemoryType::Constant && *right == Right::Write {
                 return Err(gen_error_info(
                     Position::new(interval, &data.context.flow),
-                    format!("{}", ERROR_CONSTANT_MUTABLE_FUNCTION),
+                    ERROR_CONSTANT_MUTABLE_FUNCTION.to_string(),
                 ));
             } else {
                 let res = f(

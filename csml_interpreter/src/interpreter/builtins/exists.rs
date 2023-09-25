@@ -16,7 +16,7 @@ pub fn exists(args: ArgsType, data: &mut Data, interval: Interval) -> Result<Lit
     match args.get("string", 0) {
         Some(literal) if literal.primitive.get_type() == PrimitiveType::PrimitiveString => {
             let value = literal.primitive.to_string();
-            let ident = Identifier::new(&value, interval.clone());
+            let ident = Identifier::new(&value, interval);
 
             let result = search_in_memory_type(&ident, data);
 

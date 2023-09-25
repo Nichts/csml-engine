@@ -38,7 +38,7 @@ const FUNCTIONS: phf::Map<&'static str, (PrimitiveMethod, Right)> = phf_map! {
 
 };
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PrimitiveNull {}
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -171,15 +171,9 @@ impl PrimitiveNull {
 // PUBLIC FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
-impl Default for PrimitiveNull {
-    fn default() -> Self {
-        Self {}
-    }
-}
-
 impl PrimitiveNull {
     pub fn get_literal(interval: Interval) -> Literal {
-        let primitive = Box::new(PrimitiveNull::default());
+        let primitive = Box::<PrimitiveNull>::default();
 
         Literal {
             content_type: "null".to_owned(),
@@ -297,7 +291,7 @@ impl Primitive for PrimitiveNull {
             "text".to_owned(),
             Literal {
                 content_type: "text".to_owned(),
-                primitive: Box::new(PrimitiveNull::default()),
+                primitive: Box::<PrimitiveNull>::default(),
                 additional_info: None,
                 secure_variable: false,
                 interval: Interval {
@@ -344,7 +338,7 @@ impl Primitive for PrimitiveNull {
             if *mem_type == MemoryType::Constant && *right == Right::Write {
                 return Err(gen_error_info(
                     Position::new(interval, &data.context.flow),
-                    format!("{}", ERROR_CONSTANT_MUTABLE_FUNCTION),
+                    ERROR_CONSTANT_MUTABLE_FUNCTION.to_string(),
                 ));
             } else {
                 let res = f(self, args, additional_info, data, interval)?;

@@ -38,8 +38,8 @@ pub fn digest_data(
     interval: Interval,
 ) -> Result<String, ErrorInfo> {
     match algo {
-        "hex" => Ok(hex::encode(&data)),
-        "base64" => Ok(openssl::base64::encode_block(&data)),
+        "hex" => Ok(hex::encode(data)),
+        "base64" => Ok(openssl::base64::encode_block(data)),
         _ => Err(gen_error_info(
             Position::new(interval, flow_name),
             format!("'{}' {}", algo, ERROR_DIGEST_ALGO),

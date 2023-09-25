@@ -595,7 +595,7 @@ impl PrimitiveObject {
     ) -> Result<Literal, ErrorInfo> {
         let usage = "port(port) => smtp object";
 
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(gen_error_info(
                 Position::new(interval, &data.context.flow),
                 format!("usage: {}", usage),
@@ -641,7 +641,7 @@ impl PrimitiveObject {
     ) -> Result<Literal, ErrorInfo> {
         let usage = "tls(BOOLEAN) => smtp object";
 
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(gen_error_info(
                 Position::new(interval, &data.context.flow),
                 format!("usage: {}", usage),
@@ -763,7 +763,7 @@ impl PrimitiveObject {
     ) -> Result<Literal, ErrorInfo> {
         let usage = "starttls(BOOLEAN) => smtp object";
 
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(gen_error_info(
                 Position::new(interval, &data.context.flow),
                 format!("usage: {}", usage),
@@ -808,7 +808,7 @@ impl PrimitiveObject {
         _content_type: &str,
     ) -> Result<Literal, ErrorInfo> {
         let usage = "send(email) => smtp object";
-        if args.len() < 1 {
+        if args.is_empty() {
             return Err(gen_error_info(
                 Position::new(interval, &data.context.flow),
                 format!("usage: {}", usage),
@@ -863,10 +863,10 @@ impl PrimitiveObject {
                     ),
                     LogLvl::Error,
                 );
-                return Err(gen_error_info(
+                Err(gen_error_info(
                     Position::new(interval, &data.context.flow),
                     format!("Could not send email: {:?}", e),
-                ));
+                ))
             }
         }
     }
@@ -1017,7 +1017,7 @@ impl PrimitiveObject {
                     _ => {
                         return Err(gen_error_info(
                             Position::new(interval, &data.context.flow),
-                            format!("Invalid milliseconds"),
+                            "Invalid milliseconds".to_string(),
                         ))
                     }
                 };
@@ -1029,12 +1029,10 @@ impl PrimitiveObject {
 
                 Ok(PrimitiveInt::get_literal(duration, interval))
             }
-            _ => {
-                return Err(gen_error_info(
-                    Position::new(interval, &data.context.flow),
-                    format!("{}", usage),
-                ));
-            }
+            _ => Err(gen_error_info(
+                Position::new(interval, &data.context.flow),
+                usage.to_string(),
+            )),
         }
     }
 
@@ -1081,12 +1079,10 @@ impl PrimitiveObject {
 
                 Ok(lit)
             }
-            _ => {
-                return Err(gen_error_info(
-                    Position::new(interval, &data.context.flow),
-                    format!("usage: {}", usage),
-                ));
-            }
+            _ => Err(gen_error_info(
+                Position::new(interval, &data.context.flow),
+                format!("usage: {}", usage),
+            )),
         }
     }
 
@@ -1133,12 +1129,10 @@ impl PrimitiveObject {
 
                 Ok(lit)
             }
-            _ => {
-                return Err(gen_error_info(
-                    Position::new(interval, &data.context.flow),
-                    format!("usage: {}", usage),
-                ));
-            }
+            _ => Err(gen_error_info(
+                Position::new(interval, &data.context.flow),
+                format!("usage: {}", usage),
+            )),
         }
     }
 
@@ -1153,16 +1147,13 @@ impl PrimitiveObject {
         match args.len() {
             1 => tools_time::parse_rfc3339(args, data, interval),
             len if len >= 2 => tools_time::pasre_from_str(args, data, interval),
-            _ => {
-                return Err(gen_error_info(
-                    Position::new(interval, &data.context.flow),
-                    format!(
-                        "usage: expect one ore two arguments :
+            _ => Err(gen_error_info(
+                Position::new(interval, &data.context.flow),
+                "usage: expect one ore two arguments :
                 Time().parse(\"2020-08-13\")   or
                 Time().parse(\"1983-08-13 12:09:14.274\", \"%Y-%m-%d %H:%M:%S%.3f\")"
-                    ),
-                ));
-            }
+                    .to_string(),
+            )),
         }
     }
 
@@ -1344,12 +1335,10 @@ impl PrimitiveObject {
 
         match jsonwebtoken::encode(&headers, &claims, &key) {
             Ok(value) => Ok(PrimitiveString::get_literal(&value, interval)),
-            Err(e) => {
-                return Err(gen_error_info(
-                    Position::new(interval, &data.context.flow),
-                    format!("Invalid JWT encode {:?}", e.kind()),
-                ));
-            }
+            Err(e) => Err(gen_error_info(
+                Position::new(interval, &data.context.flow),
+                format!("Invalid JWT encode {:?}", e.kind()),
+            )),
         }
     }
 
@@ -1415,12 +1404,10 @@ impl PrimitiveObject {
             Ok(token_message) => {
                 tools_jwt::token_data_to_literal(token_message, &data.context.flow, interval)
             }
-            Err(e) => {
-                return Err(gen_error_info(
-                    Position::new(interval, &data.context.flow),
-                    format!("Invalid JWT decode {:?}", e.kind()),
-                ));
-            }
+            Err(e) => Err(gen_error_info(
+                Position::new(interval, &data.context.flow),
+                format!("Invalid JWT decode {:?}", e.kind()),
+            )),
         }
     }
 
@@ -1500,12 +1487,10 @@ impl PrimitiveObject {
             Ok(token_message) => {
                 tools_jwt::token_data_to_literal(token_message, &data.context.flow, interval)
             }
-            Err(e) => {
-                return Err(gen_error_info(
-                    Position::new(interval, &data.context.flow),
-                    format!("Invalid JWT verify {:?}", e.kind()),
-                ));
-            }
+            Err(e) => Err(gen_error_info(
+                Position::new(interval, &data.context.flow),
+                format!("Invalid JWT verify {:?}", e.kind()),
+            )),
         }
     }
 }
@@ -1581,7 +1566,7 @@ impl PrimitiveObject {
                     .sign_to_vec()
                     .unwrap()
                     .iter()
-                    .map(|val| PrimitiveInt::get_literal(val.clone() as i64, interval))
+                    .map(|val| PrimitiveInt::get_literal(*val as i64, interval))
                     .collect::<Vec<Literal>>();
 
                 let mut map = HashMap::new();
@@ -1594,12 +1579,10 @@ impl PrimitiveObject {
                 lit.set_content_type("crypto");
                 Ok(lit)
             }
-            Err(e) => {
-                return Err(gen_error_info(
-                    Position::new(interval, flow_name),
-                    format!("{}", e),
-                ));
-            }
+            Err(e) => Err(gen_error_info(
+                Position::new(interval, flow_name),
+                format!("{}", e),
+            )),
         }
     }
 
@@ -1664,12 +1647,10 @@ impl PrimitiveObject {
                 lit.set_content_type("crypto");
                 Ok(lit)
             }
-            Err(e) => {
-                return Err(gen_error_info(
-                    Position::new(interval, flow_name),
-                    format!("{}", e),
-                ));
-            }
+            Err(e) => Err(gen_error_info(
+                Position::new(interval, flow_name),
+                format!("{}", e),
+            )),
         }
     }
 
@@ -2136,7 +2117,7 @@ impl PrimitiveObject {
             Ok(string) => Ok(PrimitiveString::get_literal(&string, interval)),
             Err(_) => Err(gen_error_info(
                 Position::new(interval, &data.context.flow),
-                format!("Object can not be converted to xml"),
+                "Object can not be converted to xml".to_string(),
             )),
         }
     }
@@ -2162,7 +2143,7 @@ impl PrimitiveObject {
             Ok(string) => Ok(PrimitiveString::get_literal(&string, interval)),
             Err(_) => Err(gen_error_info(
                 Position::new(interval, &data.context.flow),
-                format!("Object can not be converted to yaml"),
+                "Object can not be converted to yaml".to_string(),
             )),
         }
     }
@@ -2481,7 +2462,7 @@ impl PrimitiveObject {
 
         object
             .value
-            .extend(obj.into_iter().map(|(k, v)| (k.clone(), v.clone())));
+            .extend(obj.iter().map(|(k, v)| (k.clone(), v.clone())));
 
         Ok(PrimitiveNull::get_literal(interval))
     }
@@ -2789,10 +2770,10 @@ impl Primitive for PrimitiveObject {
                 if *mem_type == MemoryType::Constant && *right == Right::Write {
                     return Err(gen_error_info(
                         Position::new(interval, &data.context.flow),
-                        format!("{}", ERROR_CONSTANT_MUTABLE_FUNCTION),
+                        ERROR_CONSTANT_MUTABLE_FUNCTION.to_string(),
                     ));
                 } else {
-                    let result = f(self, args, additional_info, data, interval, &content_type)?;
+                    let result = f(self, args, additional_info, data, interval, content_type)?;
 
                     return Ok((result, *right));
                 }

@@ -272,7 +272,7 @@ pub struct InstructionInfo {
     pub total: usize,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Block {
     pub commands: Vec<(Expr, InstructionInfo)>,
     pub commands_count: usize,
@@ -283,15 +283,6 @@ pub struct Hook {
     pub index: i64,
     pub name: String,
     pub step: String,
-}
-
-impl Default for Block {
-    fn default() -> Self {
-        Self {
-            commands: Vec::new(),
-            commands_count: 0,
-        }
-    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -380,25 +371,13 @@ pub enum Pretfix {
     Not,
 }
 
-#[derive(PartialEq, Debug, Clone, Eq, Hash, Copy, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Eq, Hash, Copy, Serialize, Deserialize, Default)]
 pub struct Interval {
     pub start_line: u32,
     pub start_column: u32,
     pub end_line: Option<u32>,
     pub end_column: Option<u32>,
     pub offset: usize,
-}
-
-impl Default for Interval {
-    fn default() -> Self {
-        Self {
-            start_line: 0,
-            start_column: 0,
-            end_line: None,
-            end_column: None,
-            offset: 0,
-        }
-    }
 }
 
 impl Interval {

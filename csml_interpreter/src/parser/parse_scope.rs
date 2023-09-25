@@ -23,7 +23,7 @@ pub fn parse_root<'a, E>(s: Span<'a>) -> IResult<Span<'a>, Block, E>
 where
     E: ParseError<Span<'a>> + ContextError<Span<'a>>,
 {
-    let result = fold_many0(
+    fold_many0(
         parse_root_functions,
         Block::default,
         |mut acc: Block, mut command| {
@@ -37,9 +37,7 @@ where
             acc.commands_count = index;
             acc
         },
-    )(s);
-
-    result
+    )(s)
 }
 
 pub fn parse_implicit_scope<'a, E>(s: Span<'a>) -> IResult<Span<'a>, Block, E>

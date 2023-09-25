@@ -66,15 +66,9 @@ impl CsmlLog {
             None => (None, None, None),
         };
 
-        let flow = match flow {
-            Some(flow) => Some(flow),
-            None => None,
-        };
+        let flow = flow;
 
-        let line = match line {
-            Some(line) => Some(line),
-            None => None,
-        };
+        let line = line;
 
         Self {
             bot_id,

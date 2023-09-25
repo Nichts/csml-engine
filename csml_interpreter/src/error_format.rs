@@ -331,8 +331,8 @@ pub const OVERFLOWING_OPERATION: &str = "overflowing operation:";
 // PRiVTE FUNCTION
 ////////////////////////////////////////////////////////////////////////////////
 
-fn add_context_to_error_message<'a>(
-    flow_slice: Span<'a>,
+fn add_context_to_error_message(
+    flow_slice: Span<'_>,
     message: String,
     line_number: u32,
     column: usize,
@@ -423,8 +423,8 @@ pub fn convert_error_from_span<'a>(flow_slice: Span<'a>, e: CustomError<Span<'a>
     add_context_to_error_message(flow_slice, message, line_number, column, offset)
 }
 
-pub fn convert_error_from_interval<'a>(
-    flow_slice: Span<'a>,
+pub fn convert_error_from_interval(
+    flow_slice: Span<'_>,
     message: String,
     interval: Interval,
 ) -> String {

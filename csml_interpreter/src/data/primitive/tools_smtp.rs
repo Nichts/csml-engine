@@ -138,43 +138,43 @@ pub fn format_email(
 ) -> Result<lettre::Message, ErrorInfo> {
     let mut message_builder = lettre::Message::builder();
 
-    let from = format_email_value(&email, "from", "and a valid email", data, interval)?;
+    let from = format_email_value(email, "from", "and a valid email", data, interval)?;
     if let Some(form) = from {
         let mbox = parse_email(form.as_ref(), data, interval)?;
         message_builder = message_builder.from(mbox);
     }
 
-    let to = format_email_value(&email, "to", "and a valid email", data, interval)?;
+    let to = format_email_value(email, "to", "and a valid email", data, interval)?;
     if let Some(to) = to {
         let mbox = parse_email(to.as_ref(), data, interval)?;
         message_builder = message_builder.to(mbox);
     }
 
-    let reply_to = format_email_value(&email, "reply_to", "and a valid email", data, interval)?;
+    let reply_to = format_email_value(email, "reply_to", "and a valid email", data, interval)?;
     if let Some(reply_to) = reply_to {
         let mbox = parse_email(reply_to.as_ref(), data, interval)?;
         message_builder = message_builder.reply_to(mbox);
     }
 
-    let bcc = format_email_value(&email, "bcc", "and a valid email", data, interval)?;
+    let bcc = format_email_value(email, "bcc", "and a valid email", data, interval)?;
     if let Some(bcc) = bcc {
         let mbox = parse_email(bcc.as_ref(), data, interval)?;
         message_builder = message_builder.bcc(mbox);
     }
 
-    let cc = format_email_value(&email, "cc", "and a valid email", data, interval)?;
+    let cc = format_email_value(email, "cc", "and a valid email", data, interval)?;
     if let Some(cc) = cc {
         let mbox = parse_email(cc.as_ref(), data, interval)?;
         message_builder = message_builder.cc(mbox);
     }
 
-    let subject = format_email_value(&email, "subject", "", data, interval)?;
+    let subject = format_email_value(email, "subject", "", data, interval)?;
     if let Some(subject) = subject {
         message_builder = message_builder.subject(subject.to_owned());
     }
 
-    let text = format_email_value(&email, "text", "", data, interval)?;
-    let html = format_email_value(&email, "html", "", data, interval)?;
+    let text = format_email_value(email, "text", "", data, interval)?;
+    let html = format_email_value(email, "html", "", data, interval)?;
 
     if text.is_none() && html.is_none() {
         return Err(gen_error_info(

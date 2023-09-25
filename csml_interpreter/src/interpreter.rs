@@ -106,7 +106,7 @@ pub fn interpret_scope(
 
                 message_data.hold = Some(hold.to_owned());
 
-                MSG::send(&sender, MSG::Hold(hold));
+                MSG::send(sender, MSG::Hold(hold));
                 message_data.exit_condition = Some(ExitCondition::Hold);
                 return Ok(message_data);
             }
@@ -128,36 +128,21 @@ pub fn interpret_scope(
 
                 message_data.hold = Some(hold.to_owned());
 
-                MSG::send(&sender, MSG::Hold(hold));
+                MSG::send(sender, MSG::Hold(hold));
                 message_data.exit_condition = Some(ExitCondition::Hold);
                 return Ok(message_data);
             }
-            Expr::ObjectExpr(fun) => {
-                message_data = match_actions(fun, message_data, data, &sender)?
-            }
+            Expr::ObjectExpr(fun) => message_data = match_actions(fun, message_data, data, sender)?,
             Expr::IfExpr(ref if_statement) => {
-                message_data = solve_if_statement(
-                    if_statement,
-                    message_data,
-                    data,
-                    instruction_info,
-                    &sender,
-                )?;
+                message_data =
+                    solve_if_statement(if_statement, message_data, data, instruction_info, sender)?;
             }
             Expr::ForEachExpr(ident, index, expr, block, range) => {
-                message_data = for_loop(
-                    ident,
-                    index,
-                    expr,
-                    block,
-                    range,
-                    message_data,
-                    data,
-                    &sender,
-                )?
+                message_data =
+                    for_loop(ident, index, expr, block, range, message_data, data, sender)?
             }
             Expr::WhileExpr(expr, block, range) => {
-                message_data = while_loop(expr, block, range, message_data, data, &sender)?
+                message_data = while_loop(expr, block, range, message_data, data, sender)?
             }
             e => {
                 return Err(gen_error_info(

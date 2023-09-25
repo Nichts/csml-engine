@@ -35,7 +35,7 @@ fn exec_path_literal(
             &MemoryType::Use,
             None,
             &Some(path),
-            &ContentType::get(&literal),
+            &ContentType::get(literal),
             data,
             msg_data,
             sender,
@@ -73,7 +73,7 @@ pub fn expr_to_literal(
             args,
             interval,
         })) => {
-            let mut literal = resolve_object(&name, args, *interval, data, msg_data, sender)?;
+            let mut literal = resolve_object(name, args, *interval, data, msg_data, sender)?;
 
             exec_path_literal(&mut literal, dis_warnings, path, data, msg_data, sender)
         }
@@ -86,7 +86,7 @@ pub fn expr_to_literal(
             let mut is_secure = false;
 
             for (key, value) in object.iter() {
-                let lit = expr_to_literal(&value, dis_warnings, None, data, msg_data, sender)?;
+                let lit = expr_to_literal(value, dis_warnings, None, data, msg_data, sender)?;
                 if lit.secure_variable {
                     is_secure = true;
                 }
@@ -145,7 +145,7 @@ pub fn expr_to_literal(
             )?;
             // only for closure capture the step variables
             let memory: HashMap<String, Literal> = data.get_all_memories();
-            capture_variables(&mut &mut new_value, memory, &data.context.flow);
+            capture_variables(&mut new_value, memory, &data.context.flow);
             Ok(new_value)
         }
         Expr::IdentExpr(var, ..) => Ok(get_var(

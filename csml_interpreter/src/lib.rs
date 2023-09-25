@@ -39,7 +39,7 @@ use std::sync::mpsc;
 fn execute_step(
     step: &str,
     flow: &Flow,
-    mut data: &mut Data,
+    data: &mut Data,
     sender: &Option<mpsc::Sender<MSG>>,
 ) -> MessageData {
     // stop execution if step_count >= STEP_LIMIT in order to avoid infinite loops
@@ -61,7 +61,7 @@ fn execute_step(
     {
         Some(Expr::Scope { scope, .. }) => {
             *data.step_count += 1;
-            interpret_scope(scope, &mut data, &sender)
+            interpret_scope(scope, data, sender)
         }
         _ => Err(gen_error_info(
             Position::new(
@@ -83,7 +83,7 @@ fn execute_step(
                 msg_data.exit_condition = Some(ExitCondition::End);
                 data.context.step = ContextStepInfo::Normal("end".to_string());
                 MSG::send(
-                    &sender,
+                    sender,
                     MSG::Next {
                         flow: None,
                         step: Some(ContextStepInfo::Normal("end".to_owned())),
@@ -126,17 +126,17 @@ fn get_flow_ast<'a, 'b>(
                     message: error_message,
                     additional_info: Some(error_info),
                 }),
-                &sender,
+                sender,
             ))
         }
     }
 }
 
-fn get_inserted_ast<'a, 'b>(
+fn get_inserted_ast<'a>(
     flows: &'a HashMap<String, Flow>,
     ast: &'a Flow,
     step: &ContextStepInfo,
-    bot_id: &'b str,
+    bot_id: &str,
     sender: &Option<mpsc::Sender<MSG>>,
 ) -> (bool, Option<&'a Flow>) {
     match &step {
@@ -178,7 +178,7 @@ fn get_inserted_ast<'a, 'b>(
             }
         }
         ContextStepInfo::InsertedStep { step, flow } => {
-            match get_flow_ast(&flows, &flow, bot_id, &sender) {
+            match get_flow_ast(flows, flow, bot_id, sender) {
                 Ok(inserted_ast) => {
                     let missing_step = inserted_ast
                         .flow_instructions
@@ -353,12 +353,12 @@ fn get_flows(bot: &CsmlBot) -> (HashMap<String, Flow>, HashMap<String, Flow>) {
     match &bot.bot_ast {
         Some(bot) => {
             let base64decoded = base64::engine::general_purpose::STANDARD
-                .decode(&bot)
+                .decode(bot)
                 .unwrap();
             bincode::deserialize(&base64decoded[..]).unwrap()
         }
         None => {
-            let bot = validate_bot(&bot);
+            let bot = validate_bot(bot);
 
             let flows = match bot.flows {
                 Some(flows) => flows,
@@ -485,10 +485,7 @@ pub fn interpret(
     };
 
     let mut previous_info = match &context.hold {
-        Some(hold) => match &hold.previous {
-            Some(previous) => Some(previous.clone()),
-            None => None,
-        },
+        Some(hold) => hold.previous.as_ref().cloned(),
         None => None,
     };
 
@@ -509,7 +506,7 @@ pub fn interpret(
         let mut data = Data::new(
             &flows,
             &extern_flows,
-            &ast,
+            ast,
             bot.default_flow.clone(),
             &mut context,
             &event,
@@ -526,9 +523,9 @@ pub fn interpret(
 
         msg_data = match inserted_ast {
             Some(inserted_ast) => {
-                msg_data + execute_step(&step.get_step(), &inserted_ast, &mut data, &sender)
+                msg_data + execute_step(&step.get_step(), inserted_ast, &mut data, &sender)
             }
-            None => msg_data + execute_step(&step.get_step(), &ast, &mut data, &sender),
+            None => msg_data + execute_step(&step.get_step(), ast, &mut data, &sender),
         };
 
         previous_info = data.previous_info.clone();

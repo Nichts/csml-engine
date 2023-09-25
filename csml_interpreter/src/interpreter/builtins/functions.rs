@@ -220,7 +220,7 @@ pub fn uuid_command(
                 arg if arg == "v1" => {
                     let time = SystemTime::now().duration_since(UNIX_EPOCH)?;
                     let context = Context::new(rand::thread_rng().gen());
-                    let ts = Timestamp::from_unix(&context, time.as_secs(), time.subsec_nanos());
+                    let ts = Timestamp::from_unix(context, time.as_secs(), time.subsec_nanos());
 
                     let node_id = &[
                         rand::thread_rng().gen(),

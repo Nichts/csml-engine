@@ -178,7 +178,7 @@ mod tests {
     pub fn test_literal(s: Span) -> IResult<Span, Expr> {
         let var = parse_literal_expr(s);
         if let Ok((s, v)) = var {
-            if s.fragment().len() != 0 {
+            if !s.fragment().is_empty() {
                 Err(Err::Error(nom::error::Error::new(s, ErrorKind::Tag)))
             } else {
                 Ok((s, v))

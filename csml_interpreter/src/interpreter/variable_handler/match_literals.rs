@@ -153,21 +153,21 @@ mod tests {
     }
 
     fn match_lit_true(lit1: &Literal, lit2: &Literal) {
-        match match_obj(&lit1, &lit2) {
+        match match_obj(lit1, lit2) {
             boolean if boolean => {}
             _ => panic!("\n\nlit1: {:?}\n\n lit2: {:?}\n", lit1, lit2),
         }
     }
 
     fn match_lit_false(lit1: &Literal, lit2: &Literal) {
-        match match_obj(&lit1, &lit2) {
+        match match_obj(lit1, lit2) {
             boolean if !boolean => {}
             _ => panic!("\n\nlit1: {:?}\n\n lit2: {:?}\n", lit1, lit2),
         }
     }
 
     fn match_lit_err(lit1: &Literal, lit2: &Literal) {
-        match match_obj(&lit1, &lit2) {
+        match match_obj(lit1, lit2) {
             boolean if boolean => panic!("\n\n lit1: {:#?}\n\n lit2: {:#?}\n", lit1, lit2),
             _ => {}
         }

@@ -80,7 +80,7 @@ pub fn exec_fn_in_new_scope(
             scope,
             range: interal,
         } => {
-            let fn_msg_data = interpret_function_scope(&scope, new_scope_data, sender)?;
+            let fn_msg_data = interpret_function_scope(scope, new_scope_data, sender)?;
 
             let mut return_value = PrimitiveNull::get_literal(interal.to_owned());
             if let Some(ExitCondition::Return(lit)) = fn_msg_data.exit_condition {

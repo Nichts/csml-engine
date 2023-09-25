@@ -52,7 +52,7 @@ pub fn count_commands(command: &mut Expr, index: &mut usize, info: &mut Instruct
     match command {
         Expr::ObjectExpr(..) => {
             info.index = *index;
-            *index = *index + 1
+            *index += 1
         }
 
         Expr::IfExpr(if_statement) => {

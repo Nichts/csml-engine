@@ -115,11 +115,11 @@ impl<'a> Data<'a> {
     ) {
         (
             self.default_flow.to_string(),
-            init_child_context(&self),
+            init_child_context(self),
             self.event.clone(),
             self.env.clone(),
             self.loop_indexes.clone(),
-            self.loop_index.clone(),
+            self.loop_index,
             *self.step_count,
             self.step_limit,
             self.step_vars.clone(),
@@ -153,20 +153,20 @@ pub fn init_child_scope<'a>(
     step_count: &'a mut usize,
 ) -> Data<'a> {
     Data::new(
-        &data.flows,
-        &data.extern_flows,
-        &data.flow,
+        data.flows,
+        data.extern_flows,
+        data.flow,
         data.default_flow.clone(),
         context,
-        &data.event,
-        &data.env,
+        data.event,
+        data.env,
         data.loop_indexes.clone(),
         data.loop_index,
         step_count,
         data.step_limit,
         HashMap::new(),
         data.previous_info.clone(),
-        &data.custom_component,
-        &data.native_component,
+        data.custom_component,
+        data.native_component,
     )
 }

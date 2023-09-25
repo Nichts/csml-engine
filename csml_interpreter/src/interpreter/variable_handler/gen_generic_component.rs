@@ -154,10 +154,10 @@ fn create_default_object(
         };
     }
 
-    return Err(ErrorInfo::new(
+    Err(ErrorInfo::new(
         Position::new(*interval, flow_name),
         "type value must exist on all keys".to_string(),
-    ));
+    ))
 }
 
 fn is_parameter_required(object: &serde_json::Map<String, serde_json::Value>) -> bool {
@@ -245,7 +245,7 @@ fn get_result(
 
         result
     } else {
-        let mut result = PrimitiveObject::get_literal(&hashmap, interval);
+        let mut result = PrimitiveObject::get_literal(hashmap, interval);
 
         if is_custom_component {
             result.set_content_type(&format!("Component.{}", name.to_lowercase()));
@@ -280,7 +280,7 @@ fn get_default_object(
                 if let Some(serde_json::Value::String(dependency)) = function.get("$_get") {
                     match memoization.get(dependency) {
                         Some(value) => {
-                            result = serde_json::Value::add(flow_name, &result, &value, interval)?;
+                            result = serde_json::Value::add(flow_name, &result, value, interval)?;
                         }
                         None => {
                             if recursion.contains(dependency) {

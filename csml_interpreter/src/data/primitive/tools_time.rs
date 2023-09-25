@@ -27,17 +27,15 @@ fn get_date_string(
                 &literal.primitive,
                 &data.context.flow,
                 literal.interval,
-                format!("{}", error),
+                error.to_string(),
             )?;
 
             Ok(value.to_owned())
         }
-        _ => {
-            return Err(gen_error_info(
-                Position::new(interval, &data.context.flow),
-                format!("{}", error),
-            ))
-        }
+        _ => Err(gen_error_info(
+            Position::new(interval, &data.context.flow),
+            error.to_string(),
+        )),
     }
 }
 
@@ -100,7 +98,7 @@ pub fn parse_rfc3339(
         Err(_) => {
             return Err(gen_error_info(
                 Position::new(interval, &data.context.flow),
-                format!("{}", usage),
+                usage.to_string(),
             ))
         }
     };
@@ -151,7 +149,7 @@ pub fn pasre_from_str(
     } else {
         return Err(gen_error_info(
             Position::new(interval, &data.context.flow),
-            format!("{}", usage),
+            usage.to_string(),
         ));
     };
 

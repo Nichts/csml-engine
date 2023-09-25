@@ -129,7 +129,7 @@ pub fn get_url(
 
         let length = query.len();
         if length > 0 {
-            url.push_str("?");
+            url.push('?');
 
             for (index, key) in query.keys().enumerate() {
                 let value = match query.get(key) {
@@ -143,11 +143,11 @@ pub fn get_url(
                 };
 
                 url.push_str(key);
-                url.push_str("=");
+                url.push('=');
                 url.push_str(&value);
 
                 if index + 1 < length {
-                    url.push_str("&");
+                    url.push('&');
                 }
             }
         }
@@ -322,7 +322,7 @@ pub fn http_request(
                     if let ureq::Error::Status(code, _) = err {
                         format!("Apps service: status code {}", code)
                     } else {
-                        format!("Apps service: error")
+                        "Apps service: error".to_string()
                     }
                 }
                 false => err.to_string(),

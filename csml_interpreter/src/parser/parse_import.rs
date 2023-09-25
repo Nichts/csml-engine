@@ -47,7 +47,7 @@ where
             tuple((
                 map(
                     separated_list0(preceded(comment, tag(COMMA)), parse_fn_name),
-                    |vec| vec.into_iter().map(|expr| expr).collect(),
+                    |vec| vec.into_iter().collect(),
                 ),
                 opt(preceded(comment, tag(COMMA))),
             )),
@@ -64,11 +64,9 @@ where
 {
     match alt((parse_group, parse_fn_name_as_vec))(s) {
         Ok(value) => Ok(value),
-        Err(Err::Error(e)) => {
-            return Err(Err::Failure(E::add_context(s, ERROR_IMPORT_ARGUMENT, e)))
-        }
-        Err(Err::Failure(e)) => return Err(Err::Failure(E::append(s, ErrorKind::Tag, e))),
-        Err(Err::Incomplete(needed)) => return Err(Err::Incomplete(needed)),
+        Err(Err::Error(e)) => Err(Err::Failure(E::add_context(s, ERROR_IMPORT_ARGUMENT, e))),
+        Err(Err::Failure(e)) => Err(Err::Failure(E::append(s, ErrorKind::Tag, e))),
+        Err(Err::Incomplete(needed)) => Err(Err::Incomplete(needed)),
     }
 }
 
@@ -143,7 +141,7 @@ where
                     name,
                     original_name,
                     from_flow: from_flow.clone(),
-                    interval: interval.clone(),
+                    interval,
                 }),
                 actions: Expr::LitExpr {
                     literal: PrimitiveNull::get_literal(interval),

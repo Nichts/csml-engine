@@ -7,7 +7,7 @@ use std::hash::Hash;
 // STRUCTURE
 ////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Hash, Default)]
 pub struct Position {
     pub flow: String,
     pub interval: Interval,
@@ -16,15 +16,6 @@ pub struct Position {
 ////////////////////////////////////////////////////////////////////////////////
 // TRAIT FUNCTION
 ////////////////////////////////////////////////////////////////////////////////
-
-impl Default for Position {
-    fn default() -> Self {
-        Self {
-            flow: String::default(),
-            interval: Interval::default(),
-        }
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC FUNCTION

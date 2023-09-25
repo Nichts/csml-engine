@@ -197,25 +197,25 @@ fn evaluate_condition(
 ) -> Result<Literal, ErrorInfo> {
     match (expr1, expr2) {
         (Expr::InfixExpr(i1, ex1, ex2), Expr::InfixExpr(i2, exp_1, exp_2)) => evaluate_infix(
-            &flow_name,
+            flow_name,
             infix,
             evaluate_condition(i1, ex1, ex2, flow_name),
             evaluate_condition(i2, exp_1, exp_2, flow_name),
         ),
         (Expr::InfixExpr(i1, ex1, ex2), exp) => evaluate_infix(
-            &flow_name,
+            flow_name,
             infix,
             evaluate_condition(i1, ex1, ex2, flow_name),
             constant_expr_to_lit(exp, flow_name),
         ),
         (exp, Expr::InfixExpr(i1, ex1, ex2)) => evaluate_infix(
-            &flow_name,
+            flow_name,
             infix,
             constant_expr_to_lit(exp, flow_name),
             evaluate_condition(i1, ex1, ex2, flow_name),
         ),
         (exp_1, exp_2) => evaluate_infix(
-            &flow_name,
+            flow_name,
             infix,
             constant_expr_to_lit(exp_1, flow_name),
             constant_expr_to_lit(exp_2, flow_name),
@@ -260,7 +260,7 @@ pub fn constant_expr_to_lit(expr: &Expr, flow_name: &str) -> Result<Literal, Err
             let mut map = HashMap::new();
 
             for (key, value) in object.iter() {
-                map.insert(key.to_owned(), constant_expr_to_lit(&value, flow_name)?);
+                map.insert(key.to_owned(), constant_expr_to_lit(value, flow_name)?);
             }
 
             Ok(PrimitiveObject::get_literal(
@@ -302,7 +302,7 @@ pub fn constant_expr_to_lit(expr: &Expr, flow_name: &str) -> Result<Literal, Err
                 Ok(literal.clone())
             } else {
                 Err(gen_error_info(
-                    Position::new(interval.clone(), flow_name),
+                    Position::new(*interval, flow_name),
                     ERROR_INVALID_CONSTANT_EXPR.to_owned(),
                 ))
             }

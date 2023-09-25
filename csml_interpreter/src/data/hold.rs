@@ -91,9 +91,9 @@ pub fn hold_index_end_loop(data: &mut Data) {
 
 pub fn hold_loop_incrs_index(data: &mut Data, index: usize) {
     data.loop_indexes[data.loop_index] = index;
-    data.loop_index = data.loop_index + 1;
+    data.loop_index += 1;
 }
 
 pub fn hold_loop_decrs_index(data: &mut Data) {
-    data.loop_index = data.loop_index - 1;
+    data.loop_index -= 1;
 }

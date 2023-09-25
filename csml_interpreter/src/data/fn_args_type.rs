@@ -33,7 +33,7 @@ impl ArgsType {
                     let value =
                         PrimitiveString::get_literal(&lit.primitive.to_string(), lit.interval);
                     args.push(value);
-                    index = index + 1;
+                    index += 1;
                 }
 
                 obj.insert(
@@ -64,10 +64,10 @@ impl ArgsType {
 
                     let value = lit.primitive.to_string();
                     args.push(value);
-                    index = index + 1;
+                    index += 1;
                 }
 
-                format!("{}", args.join(", "))
+                args.join(", ").to_string()
             }
         }
     }

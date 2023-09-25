@@ -115,12 +115,10 @@ pub fn get_algorithm(
         {
             Ok(algorithm)
         }
-        _ => {
-            return Err(gen_error_info(
-                Position::new(interval, flow_name),
-                ERROR_JWT_ALGO.to_string(),
-            ))
-        }
+        _ => Err(gen_error_info(
+            Position::new(interval, flow_name),
+            ERROR_JWT_ALGO.to_string(),
+        )),
     }
 }
 

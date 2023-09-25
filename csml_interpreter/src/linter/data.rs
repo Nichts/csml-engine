@@ -215,11 +215,11 @@ impl State {
     }
 
     pub fn enter_loop(&mut self) {
-        self.loop_scope = self.loop_scope + 1
+        self.loop_scope += 1
     }
 
     pub fn exit_loop(&mut self) {
-        self.loop_scope = self.loop_scope - 1
+        self.loop_scope -= 1
     }
 }
 

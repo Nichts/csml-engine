@@ -97,9 +97,7 @@ fn loop_path(
                             &DisplayWarnings::Off => {
                                 PrimitiveNull::get_literal(err.position.interval)
                             }
-                            &DisplayWarnings::On => {
-                                MSG::send_error_msg(&sender, msg_data, Err(err))
-                            }
+                            &DisplayWarnings::On => MSG::send_error_msg(sender, msg_data, Err(err)),
                         };
                         return Ok((null, tmp_update_var));
                     }
@@ -114,7 +112,7 @@ fn loop_path(
                     );
                     let null = match dis_warnings {
                         &DisplayWarnings::Off => PrimitiveNull::get_literal(err.position.interval),
-                        &DisplayWarnings::On => MSG::send_error_msg(&sender, msg_data, Err(err)),
+                        &DisplayWarnings::On => MSG::send_error_msg(sender, msg_data, Err(err)),
                     };
                     return Ok((null, tmp_update_var));
                 }
@@ -161,7 +159,7 @@ fn loop_path(
                                     PrimitiveNull::get_literal(err.position.interval)
                                 }
                                 &DisplayWarnings::On => {
-                                    MSG::send_error_msg(&sender, msg_data, Err(err))
+                                    MSG::send_error_msg(sender, msg_data, Err(err))
                                 }
                             };
 
@@ -182,10 +180,10 @@ fn loop_path(
                     ArgsType::Named(_) => {
                         let err = gen_error_info(
                             Position::new(*interval, &data.context.flow),
-                            format!("{}", ERROR_METHOD_NAMED_ARGS),
+                            ERROR_METHOD_NAMED_ARGS.to_string(),
                         );
                         return Ok((
-                            MSG::send_error_msg(&sender, msg_data, Err(err)),
+                            MSG::send_error_msg(sender, msg_data, Err(err)),
                             tmp_update_var,
                         ));
                     }
@@ -279,10 +277,10 @@ fn loop_path(
 // PUBLIC FUNCTION
 ////////////////////////////////////////////////////////////////////////////////
 
-pub fn get_literal<'a, 'b>(
+pub fn get_literal<'a>(
     literal: &'a mut Literal,
     index: Option<Literal>,
-    flow_name: &'b str,
+    flow_name: &str,
 ) -> Result<&'a mut Literal, ErrorInfo> {
     let interval = literal.interval.to_owned();
 
@@ -375,7 +373,7 @@ pub fn resolve_path(
     for (interval, node) in path.iter() {
         match node {
             PathState::ExprIndex(expr) => {
-                let lit = expr_to_literal(&expr, dis_warnings, None, data, msg_data, sender)?;
+                let lit = expr_to_literal(expr, dis_warnings, None, data, msg_data, sender)?;
                 if let Ok(val) = Literal::get_value::<i64>(
                     &lit.primitive,
                     &data.context.flow,
@@ -406,7 +404,7 @@ pub fn resolve_path(
                 PathLiteral::Func {
                     name: name.to_owned(),
                     interval: interval.to_owned(),
-                    args: resolve_fn_args(&args, data, msg_data, dis_warnings, sender)?,
+                    args: resolve_fn_args(args, data, msg_data, dis_warnings, sender)?,
                 },
             )),
             PathState::StringIndex(key) => {
@@ -613,7 +611,7 @@ pub fn get_var(
             Some(path) => {
                 let path = resolve_path(path, dis_warnings, data, msg_data, sender)?;
 
-                let content_type = ContentType::get(&data.env);
+                let content_type = ContentType::get(data.env);
                 let (lit, _tmp_mem_update) = exec_path_actions(
                     &mut data.env.clone(),
                     dis_warnings,
@@ -714,7 +712,7 @@ pub fn get_var(
                         &mem_type,
                         None,
                         &path,
-                        &ContentType::get(&lit),
+                        &ContentType::get(lit),
                         &mut new_scope_data,
                         msg_data,
                         sender,
@@ -722,7 +720,7 @@ pub fn get_var(
 
                     let (new_literal, update_mem) = match result {
                         Ok((lit, update)) => (lit, update),
-                        Err(err) => (MSG::send_error_msg(&sender, msg_data, Err(err)), false),
+                        Err(err) => (MSG::send_error_msg(sender, msg_data, Err(err)), false),
                     };
 
                     save_literal_in_mem(
@@ -743,7 +741,7 @@ pub fn get_var(
                     // if we are not in a condition an error message is created and send
                     let mut null = match dis_warnings {
                         &DisplayWarnings::Off => PrimitiveNull::get_literal(err.position.interval),
-                        &DisplayWarnings::On => MSG::send_error_msg(&sender, msg_data, Err(err)),
+                        &DisplayWarnings::On => MSG::send_error_msg(sender, msg_data, Err(err)),
                     };
 
                     null.add_info("error", error);
@@ -810,10 +808,10 @@ pub fn get_var_from_mem<'a>(
     }
 }
 
-pub fn search_goto_var_memory<'a>(
+pub fn search_goto_var_memory(
     var: &GotoValueType,
     msg_data: &mut MessageData,
-    data: &'a mut Data,
+    data: &mut Data,
     sender: &Option<mpsc::Sender<MSG>>,
 ) -> Result<String, ErrorInfo> {
     let flow_name = data.context.flow.clone();
@@ -828,7 +826,7 @@ pub fn search_goto_var_memory<'a>(
                 &literal.primitive,
                 &flow_name,
                 literal.interval,
-                format!("{}", ERROR_GOTO_VAR),
+                ERROR_GOTO_VAR.to_string(),
             )?
             .to_owned())
         }

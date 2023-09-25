@@ -93,9 +93,9 @@ pub fn create_error_info(error_msg: &str, interval: Interval) -> HashMap<String,
 ////////////////////////////////////////////////////////////////////////////////
 
 impl Literal {
-    pub fn get_value<'lifetime, 'a, T: 'static>(
+    pub fn get_value<'lifetime, T: 'static>(
         primitive: &'lifetime Box<dyn Primitive>,
-        flow_name: &'a str,
+        flow_name: &str,
         interval: Interval,
         error_message: String,
     ) -> Result<&'lifetime T, ErrorInfo> {
@@ -108,9 +108,9 @@ impl Literal {
         }
     }
 
-    pub fn get_mut_value<'lifetime, 'a, T: 'static>(
+    pub fn get_mut_value<'lifetime, T: 'static>(
         primitive: &'lifetime mut Box<dyn Primitive>,
-        flow_name: &'a str,
+        flow_name: &str,
         interval: Interval,
         error_message: String,
     ) -> Result<&'lifetime mut T, ErrorInfo> {
@@ -212,7 +212,7 @@ impl PartialOrd for Literal {
 
 impl PartialEq for Literal {
     fn eq(&self, other: &Self) -> bool {
-        (*self).primitive.is_eq(&(*other.primitive))
+        self.primitive.is_eq(&(*other.primitive))
     }
 }
 

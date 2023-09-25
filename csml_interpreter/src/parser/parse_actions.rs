@@ -174,11 +174,9 @@ where
 {
     match preceded(comment, func)(s) {
         Ok(value) => Ok(value),
-        Err(Err::Error(e)) => {
-            return Err(Err::Failure(E::add_context(s, ERROR_ACTION_ARGUMENT, e)))
-        }
-        Err(Err::Failure(e)) => return Err(Err::Failure(e)),
-        Err(Err::Incomplete(needed)) => return Err(Err::Incomplete(needed)),
+        Err(Err::Error(e)) => Err(Err::Failure(E::add_context(s, ERROR_ACTION_ARGUMENT, e))),
+        Err(Err::Failure(e)) => Err(Err::Failure(e)),
+        Err(Err::Incomplete(needed)) => Err(Err::Incomplete(needed)),
     }
 }
 

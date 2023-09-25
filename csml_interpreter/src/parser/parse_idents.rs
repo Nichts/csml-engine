@@ -66,7 +66,7 @@ where
     E: ParseError<Span<'a>> + ContextError<Span<'a>>,
 {
     let (span, var) = get_string(s)?;
-    let (_, ..) = validate_string(s, UTILISATION_RESERVED, &var)?;
+    let (..) = validate_string(s, UTILISATION_RESERVED, &var)?;
 
     Ok((span, var))
 }
@@ -77,7 +77,7 @@ where
 {
     let (span, var) = get_string(s)?;
 
-    let (_, ..) = validate_string(s, ASSIGNATION_RESERVED, &var)?;
+    let (..) = validate_string(s, ASSIGNATION_RESERVED, &var)?;
 
     Ok((span, var))
 }
@@ -87,7 +87,7 @@ where
     E: ParseError<Span<'a>> + ContextError<Span<'a>>,
 {
     let (span, var) = get_string(s)?;
-    let (_, ..) = validate_arg_string(s, &var)?;
+    let (..) = validate_arg_string(s, &var)?;
 
     Ok((span, var))
 }

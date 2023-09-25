@@ -114,7 +114,7 @@ fn get_offsets(ast: &Flow) -> (Vec<(String, usize)>, Vec<usize>) {
         }
     }
     offsets.sort_by(|(_, a), (_, b)| a.cmp(b));
-    skip_offsets.sort_by(|a, b| a.cmp(b));
+    skip_offsets.sort();
 
     (offsets, skip_offsets)
 }

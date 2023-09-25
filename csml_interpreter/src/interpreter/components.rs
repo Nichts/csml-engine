@@ -79,7 +79,7 @@ pub fn load_components() -> Result<serde_json::Map<String, serde_json::Value>, E
     };
 
     let components_dir = Path::new(&components_dir);
-    let _res = read_components_dir(&components_dir, &mut map)?;
+    read_components_dir(components_dir, &mut map)?;
 
     Ok(map)
 }

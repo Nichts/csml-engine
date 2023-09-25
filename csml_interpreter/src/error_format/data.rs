@@ -19,7 +19,7 @@ impl<I: std::fmt::Display> ParseError<I> for CustomError<I> {
 
     fn append(input: I, _kind: ErrorKind, other: Self) -> Self {
         Self {
-            input: input,
+            input,
             end: Some(other.input),
             error: other.error,
         }
@@ -29,7 +29,7 @@ impl<I: std::fmt::Display> ParseError<I> for CustomError<I> {
 impl<I: std::fmt::Display> ContextError<I> for CustomError<I> {
     fn add_context(input: I, ctx: &'static str, mut other: Self) -> Self {
         match other.error {
-            error if "" == error => {
+            error if error.is_empty() => {
                 other.input = input;
                 other.error = ctx.to_owned();
                 other

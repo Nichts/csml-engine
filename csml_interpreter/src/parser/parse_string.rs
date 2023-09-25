@@ -54,7 +54,7 @@ where
     let (rest, value) = s.take_split(length);
     let (value, interval) = get_interval(value)?;
 
-    let (_, string) = parser(&value.fragment()).unwrap_or(("", value.fragment().to_string()));
+    let (_, string) = parser(value.fragment()).unwrap_or(("", value.fragment().to_string()));
 
     expr_vector.push(Expr::LitExpr {
         literal: PrimitiveString::get_literal(&string, interval),
@@ -113,10 +113,8 @@ where
     let mut len = 0;
 
     for (i, c) in s.chars().enumerate() {
-        if c == '{' && !escape {
-            if Some('{') == s.chars().nth(i + 1) {
-                return Ok((s, Some(len)));
-            }
+        if c == '{' && !escape && Some('{') == s.chars().nth(i + 1) {
+            return Ok((s, Some(len)));
         }
 
         if c == '\\' {
@@ -207,7 +205,7 @@ where
 
         Ok((s, ()))
     } else {
-        return Err(gen_nom_failure(s, ERROR_DOUBLE_CLOSE_BRACE));
+        Err(gen_nom_failure(s, ERROR_DOUBLE_CLOSE_BRACE))
     }
 }
 

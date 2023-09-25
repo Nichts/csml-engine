@@ -121,7 +121,7 @@ pub fn memory_to_literal(
                 (map.get("_content"), map.get("_content_type"))
             {
                 let mut literal = memory_to_literal(content, interval, flow_name)?;
-                literal.set_content_type(&conent_type);
+                literal.set_content_type(conent_type);
                 Ok(literal)
             } else {
                 Ok(PrimitiveNull::get_literal(interval))

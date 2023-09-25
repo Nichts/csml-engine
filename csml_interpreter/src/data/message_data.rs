@@ -9,7 +9,7 @@ use std::sync::mpsc;
 // DATA STRUCTURE
 ////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct MessageData {
     pub memories: Option<Vec<Memory>>,
     pub messages: Vec<Message>,
@@ -20,17 +20,6 @@ pub struct MessageData {
 ////////////////////////////////////////////////////////////////////////////////
 // TRAIT FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
-
-impl Default for MessageData {
-    fn default() -> Self {
-        Self {
-            memories: None,
-            messages: Vec::new(),
-            hold: None,
-            exit_condition: None,
-        }
-    }
-}
 
 impl Add<MessageData> for MessageData {
     type Output = Self;

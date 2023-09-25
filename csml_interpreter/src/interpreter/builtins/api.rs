@@ -29,7 +29,7 @@ fn format_body(
 
             map.insert(
                 "function_id".to_owned(),
-                PrimitiveString::get_literal(&fn_id, interval),
+                PrimitiveString::get_literal(fn_id, interval),
             );
         }
         _ => {

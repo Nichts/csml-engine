@@ -36,16 +36,13 @@ enum ObjType {
 ////////////////////////////////////////////////////////////////////////////////
 
 fn check_for_function(name: &str, data: &Data) -> Option<(InstructionScope, Expr)> {
-    match data
-        .flow
+    data.flow
         .flow_instructions
         .get_key_value(&InstructionScope::FunctionScope {
             name: name.to_owned(),
             args: Vec::new(),
-        }) {
-        Some((i, e)) => Some((i.to_owned(), e.to_owned())),
-        None => None,
-    }
+        })
+        .map(|(i, e)| (i.to_owned(), e.to_owned()))
 }
 
 fn get_type<'a>(name: &'a str, interval: Interval, data: &'a Data) -> ObjType {
@@ -198,7 +195,7 @@ fn check_for_import<'a>(
             name: name.to_owned(),
             original_name: None,
             from_flow: FromFlow::None,
-            interval: interval.clone(),
+            interval,
         })) {
         Some((InstructionScope::ImportScope(import), _expr)) => {
             match search_function(&data.context.flow, data.flows, data.extern_flows, import) {
@@ -210,11 +207,7 @@ fn check_for_import<'a>(
     }
 }
 
-fn check_for_closure<'a>(
-    name: &str,
-    interval: Interval,
-    data: &'a Data,
-) -> Option<(Vec<String>, Expr)> {
+fn check_for_closure(name: &str, interval: Interval, data: &Data) -> Option<(Vec<String>, Expr)> {
     match data.step_vars.get(name) {
         Some(lit) => {
             let val = Literal::get_value::<PrimitiveClosure>(
@@ -289,8 +282,8 @@ pub fn resolve_object(
             let resolved_args =
                 resolve_fn_args(args, data, msg_data, &DisplayWarnings::On, sender)?;
 
-            let value = match_native_builtin(&name, resolved_args, interval.to_owned(), data);
-            Ok(MSG::send_error_msg(&sender, msg_data, value))
+            let value = match_native_builtin(name, resolved_args, interval.to_owned(), data);
+            Ok(MSG::send_error_msg(sender, msg_data, value))
         }
 
         ObjType::BuiltIn => {
@@ -298,7 +291,7 @@ pub fn resolve_object(
                 resolve_fn_args(args, data, msg_data, &DisplayWarnings::On, sender)?;
 
             let value = match_builtin(
-                &name,
+                name,
                 resolved_args,
                 interval.to_owned(),
                 data,
@@ -306,7 +299,7 @@ pub fn resolve_object(
                 sender,
             );
 
-            Ok(MSG::send_error_msg(&sender, msg_data, value))
+            Ok(MSG::send_error_msg(sender, msg_data, value))
         }
 
         ObjType::BuiltInWithoutWarnings => {
@@ -314,7 +307,7 @@ pub fn resolve_object(
                 resolve_fn_args(args, data, msg_data, &DisplayWarnings::Off, sender)?;
 
             let value = match_builtin(
-                &name,
+                name,
                 resolved_args,
                 interval.to_owned(),
                 data,
@@ -322,7 +315,7 @@ pub fn resolve_object(
                 sender,
             );
 
-            Ok(MSG::send_error_msg(&sender, msg_data, value))
+            Ok(MSG::send_error_msg(sender, msg_data, value))
         }
 
         ObjType::Function { fn_args, scope } => {
@@ -356,8 +349,8 @@ pub fn resolve_object(
                 return Err(error);
             }
 
-            let mut context = init_child_context(&data);
-            let mut step_count = data.step_count.clone();
+            let mut context = init_child_context(data);
+            let mut step_count = *data.step_count;
             let mut new_scope_data = init_child_scope(data, &mut context, &mut step_count);
             new_scope_data.flow = new_flow;
 
@@ -395,7 +388,7 @@ pub fn resolve_object(
             );
 
             Ok(MSG::send_error_msg(
-                &sender,
+                sender,
                 msg_data,
                 Err(err) as Result<Literal, ErrorInfo>,
             ))
@@ -420,17 +413,15 @@ pub fn exec_fn(
         ));
     }
 
-    let mut context = init_child_context(&data);
-    let mut step_count = data.step_count.clone();
+    let mut context = init_child_context(data);
+    let mut step_count = *data.step_count;
     let mut new_scope_data = init_child_scope(data, &mut context, &mut step_count);
     insert_args_in_scope_memory(&mut new_scope_data, fn_args, &args, msg_data, sender);
     if let Some(memories) = memories_to_insert {
         insert_memories_in_scope_memory(&mut new_scope_data, memories, msg_data, sender);
     }
 
-    let res = exec_fn_in_new_scope(scope, &mut new_scope_data, msg_data, sender);
-
-    res
+    exec_fn_in_new_scope(scope, &mut new_scope_data, msg_data, sender)
 }
 
 pub fn exec_closure(

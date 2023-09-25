@@ -138,7 +138,7 @@ pub fn solve_if_statement(
                         msg_data = msg_data + interpret_scope(scope, data, sender)?;
                     } else if let Some(then_branch) = then_branch {
                         return solve_if_statement(
-                            &then_branch,
+                            then_branch,
                             msg_data,
                             data,
                             instruction_info,

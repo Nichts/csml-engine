@@ -107,30 +107,28 @@ fn encode_value(pairs: &Parse) -> String {
     let mut vec = vec![];
 
     for (index, (key, val)) in pairs.enumerate() {
-        let encoded_value: String = if val.contains(",") {
+        let encoded_value: String = if val.contains(',') {
             let split: Vec<&str> = val.split(',').collect();
 
-            let value =
-                split
-                    .into_iter()
-                    .enumerate()
-                    .fold(String::new(), |mut acc, (index, val)| {
-                        if index > 0 {
-                            acc.push_str(",");
-                        }
+            split
+                .into_iter()
+                .enumerate()
+                .fold(String::new(), |mut acc, (index, val)| {
+                    if index > 0 {
+                        acc.push(',');
+                    }
 
-                        let encoded = urlencoding::encode(val);
-                        acc.push_str(&encoded);
+                    let encoded = urlencoding::encode(val);
+                    acc.push_str(&encoded);
 
-                        acc
-                    });
-            value
+                    acc
+                })
         } else {
             urlencoding::encode(&val).into_owned()
         };
 
         let and = if index == 0 { "" } else { "&" };
-        let equal = if encoded_value.len() == 0 { "" } else { "=" };
+        let equal = if encoded_value.is_empty() { "" } else { "=" };
 
         vec.push(format!("{and}{}{equal}{}", key, encoded_value));
     }
@@ -142,26 +140,24 @@ fn decode_value(pairs: &Parse) -> String {
     let mut vec = vec![];
 
     for (index, (key, val)) in pairs.enumerate() {
-        let encoded_value: String = if val.contains(",") {
+        let encoded_value: String = if val.contains(',') {
             let split: Vec<&str> = val.split(',').collect();
 
-            let value =
-                split
-                    .into_iter()
-                    .enumerate()
-                    .fold(String::new(), |mut acc, (index, val)| {
-                        if index > 0 {
-                            acc.push_str(",");
-                        }
+            split
+                .into_iter()
+                .enumerate()
+                .fold(String::new(), |mut acc, (index, val)| {
+                    if index > 0 {
+                        acc.push(',');
+                    }
 
-                        match urlencoding::decode(val) {
-                            Ok(decoded) => acc.push_str(&decoded),
-                            Err(_) => acc.push_str(&val),
-                        };
+                    match urlencoding::decode(val) {
+                        Ok(decoded) => acc.push_str(&decoded),
+                        Err(_) => acc.push_str(val),
+                    };
 
-                        acc
-                    });
-            value
+                    acc
+                })
         } else {
             match urlencoding::decode(&val) {
                 Ok(decoded) => decoded.into_owned(),
@@ -170,7 +166,7 @@ fn decode_value(pairs: &Parse) -> String {
         };
 
         let and = if index == 0 { "" } else { "&" };
-        let equal = if encoded_value.len() == 0 { "" } else { "=" };
+        let equal = if encoded_value.is_empty() { "" } else { "=" };
 
         vec.push(format!("{and}{}{equal}{}", key, encoded_value));
     }
@@ -389,12 +385,10 @@ impl PrimitiveString {
             (_, Some(json)) | (Some(json), _) => {
                 json_to_literal(json, interval, &data.context.flow)
             }
-            _ => {
-                return Err(gen_error_info(
-                    Position::new(interval, &data.context.flow),
-                    format!("Invalid format string is not a valid yaml or xml"),
-                ));
-            }
+            _ => Err(gen_error_info(
+                Position::new(interval, &data.context.flow),
+                "Invalid format string is not a valid yaml or xml".to_string(),
+            )),
         }
     }
 
@@ -546,13 +540,10 @@ impl PrimitiveString {
         }
 
         match urlencoding::decode(&string.value) {
-            Ok(decoded) => Ok(PrimitiveString::get_literal(
-                &decoded.into_owned(),
-                interval,
-            )),
+            Ok(decoded) => Ok(PrimitiveString::get_literal(&decoded, interval)),
             Err(_) => Err(gen_error_info(
                 Position::new(interval, &data.context.flow),
-                format!("Invalid UTF8 string"),
+                "Invalid UTF8 string".to_string(),
             )),
         }
     }
@@ -1167,7 +1158,7 @@ impl PrimitiveString {
             }
         };
 
-        while let Some(result) = action.find(&s) {
+        while let Some(result) = action.find(s) {
             vector.push(PrimitiveString::get_literal(
                 &s[result.start()..result.end()],
                 interval,
@@ -1374,7 +1365,7 @@ impl PrimitiveString {
                     .to_owned();
 
                     if int_start < 0 {
-                        int_start = len as i64 + int_start;
+                        int_start += len as i64;
                     }
 
                     let start = match int_start {
@@ -1414,11 +1405,11 @@ impl PrimitiveString {
                     .to_owned();
 
                     if int_start < 0 {
-                        int_start = len as i64 + int_start;
+                        int_start += len as i64;
                     }
 
                     if int_end.is_negative() {
-                        int_end = len as i64 + int_end;
+                        int_end += len as i64;
                     }
                     if int_end < int_start {
                         return Err(gen_error_info(
@@ -1522,7 +1513,7 @@ impl PrimitiveString {
         }
 
         let s = &string.value;
-        Ok(PrimitiveString::get_literal(&s.trim(), interval))
+        Ok(PrimitiveString::get_literal(s.trim(), interval))
     }
 
     fn trim_left(
@@ -1544,7 +1535,7 @@ impl PrimitiveString {
         }
 
         let s = &string.value;
-        Ok(PrimitiveString::get_literal(&s.trim_start(), interval))
+        Ok(PrimitiveString::get_literal(s.trim_start(), interval))
     }
 
     fn trim_right(
@@ -1566,7 +1557,7 @@ impl PrimitiveString {
         }
 
         let s = &string.value;
-        Ok(PrimitiveString::get_literal(&s.trim_end(), interval))
+        Ok(PrimitiveString::get_literal(s.trim_end(), interval))
     }
 }
 
@@ -2151,7 +2142,7 @@ impl PrimitiveString {
         let array = string
             .chars()
             .map(|c| {
-                let interval = interval.clone();
+                let interval = interval;
                 PrimitiveString::get_literal(&c.to_string(), interval)
             })
             .collect::<Vec<Literal>>();
@@ -2446,7 +2437,7 @@ impl Primitive for PrimitiveString {
             if *mem_type == MemoryType::Constant && *right == Right::Write {
                 return Err(gen_error_info(
                     Position::new(interval, &data.context.flow),
-                    format!("{}", ERROR_CONSTANT_MUTABLE_FUNCTION),
+                    ERROR_CONSTANT_MUTABLE_FUNCTION.to_string(),
                 ));
             } else {
                 let res = f(

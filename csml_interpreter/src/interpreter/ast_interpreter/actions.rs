@@ -74,7 +74,7 @@ fn get_var_info<'a>(
     }
 }
 
-fn check_if_inserted_step<'a>(name: &str, interval: &Interval, data: &'a Data) -> Option<String> {
+fn check_if_inserted_step(name: &str, interval: &Interval, data: &Data) -> Option<String> {
     match data
         .flow
         .flow_instructions
@@ -82,7 +82,7 @@ fn check_if_inserted_step<'a>(name: &str, interval: &Interval, data: &'a Data) -
             name: name.to_owned(),
             original_name: None,
             from_flow: "".to_owned(),
-            interval: interval.clone(),
+            interval: *interval,
         })) {
         Some((InstructionScope::InsertStep(insert_step), _expr)) => {
             Some(insert_step.from_flow.to_owned())
@@ -109,11 +109,11 @@ pub fn match_actions(
                     "Secure variable can not be displayed".to_owned(),
                 );
 
-                MSG::send_error_msg(&sender, &mut msg_data, Err(err));
+                MSG::send_error_msg(sender, &mut msg_data, Err(err));
                 Ok(msg_data)
             } else {
                 let msg = Message::new(lit, &data.context.flow)?;
-                MSG::send(&sender, MSG::Message(msg.clone()));
+                MSG::send(sender, MSG::Message(msg.clone()));
                 Ok(Message::add_to_message(msg_data, MessageType::Msg(msg)))
             }
         }
@@ -129,11 +129,11 @@ pub fn match_actions(
                     "Secure variable can not be displayed".to_owned(),
                 );
 
-                MSG::send_error_msg(&sender, &mut msg_data, Err(err));
+                MSG::send_error_msg(sender, &mut msg_data, Err(err));
                 Ok(msg_data)
             } else {
                 let msg = Message::new(lit, &data.context.flow)?;
-                MSG::send(&sender, MSG::Message(msg.clone()));
+                MSG::send(sender, MSG::Message(msg.clone()));
                 Ok(Message::add_to_message(msg_data, MessageType::Msg(msg)))
             }
         }
@@ -146,7 +146,7 @@ pub fn match_actions(
             let log_msg = args.args_to_log();
 
             MSG::send(
-                &sender,
+                sender,
                 MSG::Log {
                     flow: data.context.flow.to_owned(),
                     line: interval.start_line,
@@ -205,13 +205,13 @@ pub fn match_actions(
                     "Assignation of secure variable is not allowed".to_owned(),
                 );
 
-                MSG::send_error_msg(&sender, &mut msg_data, Err(err));
+                MSG::send_error_msg(sender, &mut msg_data, Err(err));
                 return Ok(msg_data);
             }
 
             // only for closure capture the step variables
             let memory: HashMap<String, Literal> = data.get_all_memories();
-            capture_variables(&mut &mut new_value, memory, &data.context.flow);
+            capture_variables(&mut new_value, memory, &data.context.flow);
 
             let (lit, name, mem_type, path) = get_var_info(old, None, data, &mut msg_data, sender)?;
 
@@ -247,7 +247,7 @@ pub fn match_actions(
                 Some(Err(err)) => {
                     new_value = PrimitiveString::get_literal(&err, lit.interval);
                     MSG::send_error_msg(
-                        &sender,
+                        sender,
                         &mut msg_data,
                         Err(gen_error_info(
                             Position::new(new_value.interval, &new_scope_data.context.flow),
@@ -262,11 +262,11 @@ pub fn match_actions(
 
             let (new_value, update) = if let MemoryType::Constant = mem_type {
                 MSG::send_error_msg(
-                    &sender,
+                    sender,
                     &mut msg_data,
                     Err(gen_error_info(
                         Position::new(new_value.interval, &new_scope_data.context.flow),
-                        format!("const variables are immutable"),
+                        "const variables are immutable".to_string(),
                     )),
                 );
 
@@ -281,7 +281,7 @@ pub fn match_actions(
                 &mem_type,
                 new_value,
                 &path,
-                &ContentType::get(&lit),
+                &ContentType::get(lit),
                 &mut new_scope_data,
                 &mut msg_data,
                 sender,
@@ -326,7 +326,7 @@ pub fn match_actions(
                 }
             }
 
-            let insert_from_flow = check_if_inserted_step(&step, interval, &data);
+            let insert_from_flow = check_if_inserted_step(&step, interval, data);
 
             // current flow/step
             data.context.step = match insert_from_flow {
@@ -338,7 +338,7 @@ pub fn match_actions(
             };
 
             MSG::send(
-                &sender,
+                sender,
                 MSG::Next {
                     flow: None,
                     step: Some(data.context.step.clone()),
@@ -355,10 +355,10 @@ pub fn match_actions(
             Ok(msg_data)
         }
         ObjectType::Goto(GotoType::Flow(flow), ..) => {
-            let flow = search_goto_var_memory(&flow, &mut msg_data, data, sender)?;
+            let flow = search_goto_var_memory(flow, &mut msg_data, data, sender)?;
 
             MSG::send(
-                &sender,
+                sender,
                 MSG::Next {
                     flow: Some(flow.to_string()),
                     step: None,
@@ -395,11 +395,11 @@ pub fn match_actions(
             interval,
         ) => {
             let step = match step {
-                Some(step) => search_goto_var_memory(&step, &mut msg_data, data, sender)?,
+                Some(step) => search_goto_var_memory(step, &mut msg_data, data, sender)?,
                 None => "start".to_owned(), // default value start step
             };
             let flow = match flow {
-                Some(flow) => search_goto_var_memory(&flow, &mut msg_data, data, sender)?,
+                Some(flow) => search_goto_var_memory(flow, &mut msg_data, data, sender)?,
                 None => data.context.flow.to_owned(), // default value current flow
             };
 
@@ -428,7 +428,7 @@ pub fn match_actions(
             // current flow/step
             data.context.flow = flow.to_string();
 
-            let insert_from_flow = check_if_inserted_step(&step, interval, &data);
+            let insert_from_flow = check_if_inserted_step(&step, interval, data);
 
             // current flow/step
             data.context.step = match insert_from_flow {
@@ -440,7 +440,7 @@ pub fn match_actions(
             };
 
             MSG::send(
-                &sender,
+                sender,
                 MSG::Next {
                     flow: flow_opt,
                     step: Some(data.context.step.clone()),
@@ -461,7 +461,7 @@ pub fn match_actions(
         ) => {
             let step = match step {
                 Some(step) => ContextStepInfo::UnknownFlow(search_goto_var_memory(
-                    &step,
+                    step,
                     &mut msg_data,
                     data,
                     sender,
@@ -469,19 +469,19 @@ pub fn match_actions(
                 None => ContextStepInfo::Normal("start".to_owned()), // default value start step
             };
             let flow = match flow {
-                Some(flow) => search_goto_var_memory(&flow, &mut msg_data, data, sender).ok(),
+                Some(flow) => search_goto_var_memory(flow, &mut msg_data, data, sender).ok(),
                 None => None,
             };
 
-            let bot = search_goto_var_memory(&next_bot, &mut msg_data, data, sender)?;
+            let bot = search_goto_var_memory(next_bot, &mut msg_data, data, sender)?;
 
             msg_data.exit_condition = Some(ExitCondition::End);
 
             MSG::send(
-                &sender,
+                sender,
                 MSG::Next {
                     step: Some(step),
-                    flow: flow,
+                    flow,
                     bot: Some(bot), // need to send previous flow / step / bot info
                 },
             );
@@ -530,7 +530,7 @@ pub fn match_actions(
             msg_data.exit_condition = Some(ExitCondition::Goto);
 
             MSG::send(
-                &sender,
+                sender,
                 MSG::Next {
                     flow: flow_opt,
                     step: step_opt,
@@ -557,18 +557,18 @@ pub fn match_actions(
                     "Assignation of secure variable is not allowed".to_owned(),
                 );
 
-                MSG::send_error_msg(&sender, &mut msg_data, Err(err));
+                MSG::send_error_msg(sender, &mut msg_data, Err(err));
                 return Ok(msg_data);
             }
 
             // only for closure capture the step variables
             let memory: HashMap<String, Literal> = data.get_all_memories();
-            capture_variables(&mut &mut new_value, memory, &data.context.flow);
+            capture_variables(&mut new_value, memory, &data.context.flow);
 
             msg_data.add_to_memory(&name.ident, new_value.clone());
 
             MSG::send(
-                &sender,
+                sender,
                 MSG::Remember(Memory::new(name.ident.to_owned(), new_value.clone())),
             );
 
@@ -579,11 +579,11 @@ pub fn match_actions(
         }
         ObjectType::Forget(memory, _interval) => {
             // delete memories form message data
-            remove_message_data_memories(&memory, &mut msg_data);
+            remove_message_data_memories(memory, &mut msg_data);
             // delete memory from current scope
-            forget_scope_memories(&memory, data);
+            forget_scope_memories(memory, data);
 
-            MSG::send(&sender, MSG::Forget(memory.to_owned()));
+            MSG::send(sender, MSG::Forget(memory.to_owned()));
 
             Ok(msg_data)
         }
