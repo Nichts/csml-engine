@@ -30,6 +30,7 @@ use init::*;
 use interpreter_actions::interpret_step;
 use utils::*;
 
+use crate::data;
 use crate::data::filter::ClientMessageFilter;
 use crate::data::models::{BotOpt, CsmlRequest};
 use crate::models::{BotVersion, BotVersionCreated, DbConversation};
@@ -255,7 +256,7 @@ pub async fn get_client_messages_filtered<'conn, 'a: 'conn>(
 pub async fn get_conversation<'conn, 'a: 'conn>(
     db: &'a mut AsyncDatabase<'conn>,
     id: Uuid,
-) -> Result<serde_json::Value, EngineError> {
+) -> Result<data::models::Conversation, EngineError> {
     init_logger();
 
     conversations::get_conversation(db, id).await

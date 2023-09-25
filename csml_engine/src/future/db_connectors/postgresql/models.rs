@@ -1,7 +1,7 @@
-pub mod utils;
-
 use super::schema::*;
+use crate::data;
 use chrono::NaiveDateTime;
+use csml_interpreter::data::Client;
 use diesel::{Associations, Identifiable, Insertable, Queryable};
 use uuid::Uuid;
 
@@ -27,7 +27,7 @@ pub struct NewBot<'a> {
     pub engine_version: &'a str,
 }
 
-#[derive(Identifiable, Queryable, Associations, PartialEq, Debug)]
+#[derive(Identifiable, Queryable, Associations, PartialEq, Debug, Clone)]
 #[diesel(table_name = csml_conversations, belongs_to(Bot))]
 pub struct Conversation {
     pub id: Uuid,
@@ -45,6 +45,26 @@ pub struct Conversation {
     pub updated_at: NaiveDateTime,
     pub created_at: NaiveDateTime,
     pub expires_at: Option<NaiveDateTime>,
+}
+
+impl From<Conversation> for data::models::Conversation {
+    fn from(value: Conversation) -> Self {
+        Self {
+            id: value.id,
+            client: Client {
+                bot_id: value.bot_id,
+                channel_id: value.channel_id,
+                user_id: value.user_id,
+            },
+            flow_id: value.flow_id,
+            step_id: value.step_id,
+            status: value.status,
+            last_interaction_at: value.last_interaction_at.and_utc(),
+            updated_at: value.updated_at.and_utc(),
+            created_at: value.created_at.and_utc(),
+            expires_at: value.expires_at.as_ref().map(NaiveDateTime::and_utc),
+        }
+    }
 }
 
 #[derive(Insertable, Queryable, Associations, PartialEq, Debug)]

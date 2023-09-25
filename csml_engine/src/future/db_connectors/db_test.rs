@@ -1,8 +1,10 @@
 #[cfg(test)]
 mod tests {
     use csml_interpreter::data::{context::ContextStepInfo, CsmlBot, CsmlFlow, Message};
+    use diesel_async::scoped_futures::ScopedFutureExt;
     use std::collections::HashMap;
 
+    use crate::data::filter::ClientMessageFilter;
     use crate::{
         future::db_connectors::init_db, future::db_connectors::*, make_migrations,
         AsyncConversationInfo, Client, Context,
@@ -135,10 +137,14 @@ mod tests {
             .await
             .unwrap();
 
-        let response =
-            messages::get_client_messages(&client, &mut data.db, Some(1), None, None, None, None)
-                .await
-                .unwrap();
+        let filter = ClientMessageFilter::builder()
+            .client(&client)
+            .limit(1)
+            .build();
+        let mut db = init_db().await.unwrap();
+        let response = messages::get_client_messages(&mut db, filter)
+            .await
+            .unwrap();
 
         let received_msgs: Vec<serde_json::Value> =
             serde_json::from_value(response["messages"].clone()).unwrap();
@@ -152,12 +158,18 @@ mod tests {
                 .unwrap()
         );
 
-        user::delete_client(&client, &mut data.db).await.unwrap();
+        let mut db = init_db().await.unwrap();
+        user::delete_client(&client, &mut db).await.unwrap();
 
-        let response =
-            messages::get_client_messages(&client, &mut data.db, Some(2), None, None, None, None)
-                .await
-                .unwrap();
+        let filter = ClientMessageFilter::builder()
+            .client(&client)
+            .limit(2)
+            .build();
+
+        let mut db = init_db().await.unwrap();
+        let response = messages::get_client_messages(&mut db, filter)
+            .await
+            .unwrap();
 
         let received_msgs: Vec<serde_json::Value> =
             serde_json::from_value(response["messages"].clone()).unwrap();

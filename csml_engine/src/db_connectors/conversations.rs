@@ -13,7 +13,7 @@ use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
 use crate::db_connectors::{state, utils::*};
 use crate::error_messages::ERROR_DB_SETUP;
 use crate::models::DbConversation;
-use crate::{Client, ConversationInfo, Database, EngineError};
+use crate::{data, Client, ConversationInfo, Database, EngineError};
 
 pub fn create_conversation(
     flow_id: &str,
@@ -313,7 +313,10 @@ pub fn update_conversation(
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
 }
 
-pub fn get_conversation(db: &mut Database, id: Uuid) -> Result<serde_json::Value, EngineError> {
+pub fn get_conversation(
+    db: &mut Database,
+    id: Uuid,
+) -> Result<data::models::Conversation, EngineError> {
     csml_logger(
         CsmlLog::new(
             None,

@@ -7,7 +7,7 @@ use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
 use crate::error_messages::ERROR_DB_SETUP;
 use crate::future::db_connectors::{state, utils::*};
 use crate::models::DbConversation;
-use crate::{AsyncConversationInfo, AsyncDatabase, Client, EngineError};
+use crate::{data, AsyncConversationInfo, AsyncDatabase, Client, EngineError};
 
 pub async fn create_conversation(
     flow_id: &str,
@@ -203,7 +203,7 @@ pub async fn update_conversation(
 pub async fn get_conversation(
     db: &mut AsyncDatabase<'_>,
     id: Uuid,
-) -> Result<serde_json::Value, EngineError> {
+) -> Result<data::models::Conversation, EngineError> {
     csml_logger(
         CsmlLog::new(None, None, None, format!("db call get client conversation")),
         LogLvl::Info,

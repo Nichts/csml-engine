@@ -254,7 +254,7 @@ pub fn get_client_messages_filtered(
     messages::get_client_messages(db, filter)
 }
 
-pub fn get_conversation(db: &mut Database, id: Uuid) -> Result<serde_json::Value, EngineError> {
+pub fn get_conversation(db: &mut Database, id: Uuid) -> Result<Conversation, EngineError> {
     init_logger();
 
     conversations::get_conversation(db, id)

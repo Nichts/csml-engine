@@ -1,6 +1,8 @@
 use crate::data::EngineError;
+use chrono::{DateTime, NaiveDateTime, Utc};
 use csml_interpreter::data::{Client, CsmlBot, MultiBot};
 use serde_derive::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FlowTrigger {
@@ -95,4 +97,22 @@ pub struct CsmlRequest {
     pub step_limit: Option<usize>,
     pub ttl_duration: Option<serde_json::Value>,
     pub low_data_mode: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Conversation {
+    pub id: Uuid,
+
+    pub client: Client,
+
+    pub flow_id: String,
+    pub step_id: String,
+    pub status: String,
+
+    pub last_interaction_at: DateTime<Utc>,
+
+    pub updated_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub expires_at: Option<DateTime<Utc>>,
 }

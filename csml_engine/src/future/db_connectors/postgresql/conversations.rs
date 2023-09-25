@@ -1,9 +1,8 @@
 use diesel::{ExpressionMethods, QueryDsl};
 use diesel_async::RunQueryDsl;
 
-use crate::future::db_connectors::postgresql::models::utils::conversation_to_json;
 use crate::models::DbConversation;
-use crate::{AsyncPostgresqlClient, Client, EngineError};
+use crate::{data, AsyncPostgresqlClient, Client, EngineError};
 use chrono::NaiveDateTime;
 use uuid::Uuid;
 
@@ -164,13 +163,13 @@ pub async fn delete_user_conversations(
 pub async fn get_conversation(
     db: &mut AsyncPostgresqlClient<'_>,
     id: Uuid,
-) -> Result<serde_json::Value, EngineError> {
-    let conversation = csml_conversations::table
+) -> Result<data::models::Conversation, EngineError> {
+    let conversation: models::Conversation = csml_conversations::table
         .find(id)
         .first(db.client.as_mut())
         .await?;
 
-    Ok(conversation_to_json(conversation))
+    Ok(conversation.into())
 }
 
 pub async fn get_client_conversations(
@@ -204,9 +203,9 @@ pub async fn get_client_conversations(
 
     let mut convs = vec![];
     for conversation in conversations {
-        let json = conversation_to_json(conversation);
+        let conv = crate::data::models::Conversation::from(conversation);
 
-        convs.push(json);
+        convs.push(serde_json::to_value(conv)?);
     }
 
     match pagination_key < total_pages {

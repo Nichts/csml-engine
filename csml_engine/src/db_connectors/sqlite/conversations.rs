@@ -1,8 +1,7 @@
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 
-use crate::db_connectors::sqlite::models::utils::conversation_to_json;
 use crate::models::DbConversation;
-use crate::{Client, EngineError, SqliteClient};
+use crate::{data, Client, EngineError, SqliteClient};
 use chrono::NaiveDateTime;
 use uuid::Uuid;
 
@@ -180,9 +179,9 @@ pub fn get_client_conversations(
 
     let mut convs = vec![];
     for conversation in conversations {
-        let json = conversation_to_json(conversation);
+        let conv = data::models::Conversation::from(conversation);
 
-        convs.push(json);
+        convs.push(serde_json::to_value(conv)?);
     }
 
     match pagination_key < total_pages {
@@ -194,12 +193,15 @@ pub fn get_client_conversations(
     }
 }
 
-pub fn get_conversation(db: &mut SqliteClient, id: Uuid) -> Result<serde_json::Value, EngineError> {
-    let conversation = csml_conversations::table
+pub fn get_conversation(
+    db: &mut SqliteClient,
+    id: Uuid,
+) -> Result<data::models::Conversation, EngineError> {
+    let conversation: models::Conversation = csml_conversations::table
         .find(models::UUID(id))
         .first(db.client.as_mut())?;
 
-    Ok(conversation_to_json(conversation))
+    Ok(conversation.into())
 }
 
 pub fn delete_all_bot_data(bot_id: &str, db: &mut SqliteClient) -> Result<(), EngineError> {

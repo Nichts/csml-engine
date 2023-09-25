@@ -49,9 +49,9 @@ pub async fn add_messages_bulk(
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
 }
 
-pub async fn get_client_messages<'conn, 'a: 'conn>(
+pub async fn get_client_messages<'conn, 'a: 'conn, 'b: 'conn>(
     db: &'a mut AsyncDatabase<'conn>,
-    filter: ClientMessageFilter<'a>,
+    filter: ClientMessageFilter<'b>,
 ) -> Result<serde_json::Value, EngineError> {
     csml_logger(
         CsmlLog::new(None, None, None, "db call get messages".to_string()),
