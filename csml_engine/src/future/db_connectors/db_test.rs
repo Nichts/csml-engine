@@ -4,6 +4,7 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::data::filter::ClientMessageFilter;
+    use crate::data::models::Direction;
     use crate::{
         future::db_connectors::init_db, future::db_connectors::*, make_migrations,
         AsyncConversationInfo, Client, Context,
@@ -132,7 +133,7 @@ mod tests {
 
         let mut data = get_conversation_info(vec![], c_id, db);
 
-        messages::add_messages_bulk(&mut data, msgs, 0, "SEND")
+        messages::add_messages_bulk(&mut data, msgs, 0, Direction::Send)
             .await
             .unwrap();
 
@@ -192,8 +193,7 @@ mod tests {
             .await
             .unwrap();
 
-        let conversations: Vec<serde_json::Value> =
-            serde_json::from_value(response["conversations"].clone()).unwrap();
+        let conversations = response.data;
 
         assert_eq!(conversations.len(), 3);
 
@@ -203,8 +203,7 @@ mod tests {
             .await
             .unwrap();
 
-        let conversations: Vec<serde_json::Value> =
-            serde_json::from_value(response["conversations"].clone()).unwrap();
+        let conversations = response.data;
         assert_eq!(conversations.len(), 0);
     }
 

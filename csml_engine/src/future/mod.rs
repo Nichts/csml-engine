@@ -32,7 +32,7 @@ use utils::*;
 
 use crate::data;
 use crate::data::filter::ClientMessageFilter;
-use crate::data::models::{BotOpt, CsmlRequest, Direction, Message, Paginated};
+use crate::data::models::{BotOpt, Conversation, CsmlRequest, Direction, Message, Paginated};
 use crate::models::{BotVersion, BotVersionCreated, DbConversation};
 use chrono::prelude::*;
 use csml_interpreter::data::{csml_bot::CsmlBot, Hold, IndexInfo};
@@ -252,7 +252,7 @@ pub async fn get_client_conversations(
     client: &Client,
     limit: Option<u32>,
     pagination_key: Option<u32>,
-) -> Result<serde_json::Value, EngineError> {
+) -> Result<Paginated<Conversation>, EngineError> {
     let mut db = init_db().await?;
     init_logger();
 

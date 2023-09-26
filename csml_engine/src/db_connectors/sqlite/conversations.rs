@@ -1,5 +1,6 @@
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 
+use crate::data::models::{Conversation, PaginationData};
 use crate::models::DbConversation;
 use crate::{data, Client, EngineError, SqliteClient};
 use chrono::NaiveDateTime;
@@ -155,7 +156,7 @@ pub fn get_client_conversations(
     db: &mut SqliteClient,
     limit: Option<u32>,
     pagination_key: Option<u32>,
-) -> Result<serde_json::Value, EngineError> {
+) -> Result<data::models::Paginated<Conversation>, EngineError> {
     let pagination_key = pagination_key.unwrap_or(1);
 
     let mut query = csml_conversations::table
@@ -165,29 +166,23 @@ pub fn get_client_conversations(
         .filter(csml_conversations::user_id.eq(&client.user_id))
         .paginate(pagination_key);
 
-    let limit_per_page = match limit {
-        Some(limit) => std::cmp::min(limit, 25),
-        None => 25,
-    };
+    let limit_per_page = limit.unwrap_or(25).min(25);
     query = query.per_page(limit_per_page);
 
-    let (conversations, total_pages) =
+    let (conversations, total_pages): (Vec<models::Conversation>, _) =
         query.load_and_count_pages::<models::Conversation>(db.client.as_mut())?;
 
-    let mut convs = vec![];
-    for conversation in conversations {
-        let conv = data::models::Conversation::from(conversation);
+    let convs: Vec<_> = conversations.into_iter().map(Into::into).collect();
 
-        convs.push(serde_json::to_value(conv)?);
-    }
-
-    match pagination_key < total_pages {
-        true => {
-            let pagination_key = (pagination_key + 1).to_string();
-            Ok(serde_json::json!({"conversations": convs, "pagination_key": pagination_key}))
-        }
-        false => Ok(serde_json::json!({ "conversations": convs })),
-    }
+    let pagination = (pagination_key < total_pages).then_some(PaginationData {
+        page: pagination_key,
+        total_pages,
+        per_page: limit_per_page,
+    });
+    Ok(data::models::Paginated {
+        data: convs,
+        pagination,
+    })
 }
 
 pub fn get_conversation(

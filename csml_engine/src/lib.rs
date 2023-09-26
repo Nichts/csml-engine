@@ -253,7 +253,7 @@ pub fn get_client_conversations(
     client: &Client,
     limit: Option<u32>,
     pagination_key: Option<u32>,
-) -> Result<serde_json::Value, EngineError> {
+) -> Result<Paginated<data::models::Conversation>, EngineError> {
     let mut db = init_db()?;
     init_logger();
 

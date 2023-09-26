@@ -341,7 +341,7 @@ pub fn get_client_conversations(
     db: &mut Database,
     limit: Option<u32>,
     pagination_key: Option<u32>,
-) -> Result<serde_json::Value, EngineError> {
+) -> Result<data::models::Paginated<data::models::Conversation>, EngineError> {
     csml_logger(
         CsmlLog::new(
             None,

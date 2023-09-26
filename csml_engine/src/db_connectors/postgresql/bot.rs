@@ -38,10 +38,7 @@ pub fn get_bot_versions(
         .filter(cmsl_bot_versions::bot_id.eq(bot_id))
         .paginate(pagination_key);
 
-    let limit_per_page = match limit {
-        Some(limit) => std::cmp::min(limit, 25),
-        None => 25,
-    };
+    let limit_per_page = limit.unwrap_or(25).min(25);
     query = query.per_page(limit_per_page);
 
     let (bot_versions, total_pages) =

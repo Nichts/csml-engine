@@ -162,8 +162,7 @@ mod tests {
         let response =
             conversations::get_client_conversations(&client, &mut db, Some(6), None).unwrap();
 
-        let conversations: Vec<serde_json::Value> =
-            serde_json::from_value(response["conversations"].clone()).unwrap();
+        let conversations = response.data;
 
         assert_eq!(conversations.len(), 3);
 
@@ -172,8 +171,7 @@ mod tests {
         let response =
             conversations::get_client_conversations(&client, &mut db, Some(6), None).unwrap();
 
-        let conversations: Vec<serde_json::Value> =
-            serde_json::from_value(response["conversations"].clone()).unwrap();
+        let conversations = response.data;
         assert_eq!(conversations.len(), 0);
     }
 

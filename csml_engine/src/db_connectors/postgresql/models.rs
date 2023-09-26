@@ -1,6 +1,8 @@
 use super::schema::*;
 use crate::data;
+use crate::data::EngineError;
 use crate::db_connectors::diesel::Direction;
+use crate::encrypt::decrypt_data;
 use chrono::NaiveDateTime;
 use csml_interpreter::data::Client;
 use diesel::{Associations, Identifiable, Insertable, Queryable};
@@ -136,7 +138,7 @@ pub struct Message {
 }
 
 impl TryFrom<Message> for data::models::Message {
-    type Error = serde_json::Error;
+    type Error = EngineError;
 
     fn try_from(message: Message) -> Result<Self, Self::Error> {
         Ok(Self {
@@ -145,7 +147,7 @@ impl TryFrom<Message> for data::models::Message {
             flow_id: message.flow_id,
             step_id: message.step_id,
             direction: message.direction.into(),
-            payload: serde_json::from_str(message.payload.as_str())?,
+            payload: decrypt_data(message.payload)?,
             content_type: message.content_type,
             message_order: message.message_order as u32,
             interaction_order: message.interaction_order as u32,
