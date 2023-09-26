@@ -4,8 +4,8 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::data::filter::ClientMessageFilter;
-    use crate::{db_connectors::*, init_db, make_migrations, Client, Context, ConversationInfo};
     use crate::data::models::Direction;
+    use crate::{db_connectors::*, init_db, make_migrations, Client, Context, ConversationInfo};
 
     fn get_client() -> Client {
         Client {
@@ -133,10 +133,7 @@ mod tests {
 
         assert_eq!(1, received_msgs.len());
 
-        assert_eq!(
-            "{\"content\": {\"text\": 4}}",
-            received_msgs[0].payload
-        );
+        assert_eq!("{\"content\": {\"text\": 4}}", received_msgs[0].payload);
 
         user::delete_client(&client, &mut data.db).unwrap();
 

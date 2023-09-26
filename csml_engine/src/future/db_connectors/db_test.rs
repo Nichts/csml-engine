@@ -149,10 +149,7 @@ mod tests {
 
         assert_eq!(1, received_msgs.len());
 
-        assert_eq!(
-            "{\"content\": {\"text\": 4}}",
-            received_msgs[0].payload
-        );
+        assert_eq!("{\"content\": {\"text\": 4}}", received_msgs[0].payload);
 
         let mut db = init_db().await.unwrap();
         user::delete_client(&client, &mut db).await.unwrap();

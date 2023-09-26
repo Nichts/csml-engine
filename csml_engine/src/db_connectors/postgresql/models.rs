@@ -4,6 +4,7 @@ use crate::db_connectors::diesel::Direction;
 use chrono::NaiveDateTime;
 use csml_interpreter::data::Client;
 use diesel::{Associations, Identifiable, Insertable, Queryable};
+use std::convert::TryFrom;
 use uuid::Uuid;
 
 #[derive(Identifiable, Queryable, PartialEq, Debug)]
@@ -134,22 +135,24 @@ pub struct Message {
     pub expires_at: Option<NaiveDateTime>,
 }
 
-impl From<Message> for data::models::Message {
-    fn from(message: Message) -> Self {
-        Self {
+impl TryFrom<Message> for data::models::Message {
+    type Error = serde_json::Error;
+
+    fn try_from(message: Message) -> Result<Self, Self::Error> {
+        Ok(Self {
             id: message.id,
             conversation_id: message.conversation_id,
             flow_id: message.flow_id,
             step_id: message.step_id,
             direction: message.direction.into(),
-            payload: message.payload,
+            payload: serde_json::from_str(message.payload.as_str())?,
             content_type: message.content_type,
             message_order: message.message_order as u32,
             interaction_order: message.interaction_order as u32,
             updated_at: message.updated_at.and_utc(),
             created_at: message.created_at.and_utc(),
             expires_at: message.expires_at.as_ref().map(NaiveDateTime::and_utc),
-        }
+        })
     }
 }
 

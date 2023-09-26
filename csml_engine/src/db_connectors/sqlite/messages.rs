@@ -1,10 +1,9 @@
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+use std::convert::TryInto;
 
 use crate::{
-    data,
-    db_connectors::sqlite::get_db,
-    encrypt::{encrypt_data},
-    Client, ConversationInfo, EngineError, SqliteClient,
+    data, db_connectors::sqlite::get_db, encrypt::encrypt_data, Client, ConversationInfo,
+    EngineError, SqliteClient,
 };
 
 use super::{
@@ -117,7 +116,7 @@ pub fn get_client_messages(
 
     let mut msgs = vec![];
     for message in messages {
-        let msg: data::models::Message = message.into();
+        let msg: data::models::Message = message.try_into()?;
 
         msgs.push(msg);
     }

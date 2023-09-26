@@ -136,7 +136,7 @@ pub struct Message {
 
     pub direction: Direction,
     pub content_type: String,
-    pub payload: String,
+    pub payload: serde_json::Value,
 
     pub updated_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,

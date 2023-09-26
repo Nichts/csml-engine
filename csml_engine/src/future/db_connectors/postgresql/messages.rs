@@ -1,5 +1,6 @@
 use diesel::{ExpressionMethods, QueryDsl};
 use diesel_async::RunQueryDsl;
+use std::convert::TryInto;
 
 use crate::{
     data,
@@ -130,7 +131,7 @@ pub async fn get_client_messages<'conn, 'a: 'conn>(
 
     let mut msgs = vec![];
     for message in messages {
-        let msg: data::models::Message = message.into();
+        let msg: data::models::Message = message.try_into()?;
 
         msgs.push(msg);
     }

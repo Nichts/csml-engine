@@ -1,4 +1,4 @@
-use csml_engine::{get_client_messages};
+use csml_engine::get_client_messages;
 use csml_interpreter::data::Client;
 
 use chrono::prelude::*;
@@ -32,8 +32,5 @@ fn main() {
 
     println!("=> {:#?}", messages);
 
-    println!(
-        "msg nbr => {}",
-        messages.data.len()
-    );
+    println!("msg nbr => {}", messages.data.len());
 }
