@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     use csml_interpreter::data::{context::ContextStepInfo, CsmlBot, CsmlFlow, Message};
-    use diesel_async::scoped_futures::ScopedFutureExt;
     use std::collections::HashMap;
 
     use crate::data::filter::ClientMessageFilter;
@@ -146,16 +145,13 @@ mod tests {
             .await
             .unwrap();
 
-        let received_msgs: Vec<serde_json::Value> =
-            serde_json::from_value(response["messages"].clone()).unwrap();
+        let received_msgs = response.data;
 
         assert_eq!(1, received_msgs.len());
 
         assert_eq!(
-            "4",
-            received_msgs[0]["payload"]["content"]["text"]
-                .as_str()
-                .unwrap()
+            "{\"content\": {\"text\": 4}}",
+            received_msgs[0].payload
         );
 
         let mut db = init_db().await.unwrap();

@@ -152,13 +152,10 @@ pub fn delete_user_conversations(
 pub fn get_client_conversations(
     client: &Client,
     db: &mut PostgresqlClient,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
+    limit: Option<u32>,
+    pagination_key: Option<u32>,
 ) -> Result<serde_json::Value, EngineError> {
-    let pagination_key = match pagination_key {
-        Some(paginate) => paginate.parse::<i64>().unwrap_or(1),
-        None => 1,
-    };
+    let pagination_key = pagination_key.unwrap_or(1);
 
     let mut query = csml_conversations::table
         .order_by(csml_conversations::updated_at.desc())

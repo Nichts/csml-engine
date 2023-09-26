@@ -60,10 +60,13 @@ mod dynamodb;
 #[cfg(feature = "mongo")]
 mod mongodb;
 #[cfg(feature = "postgresql")]
-mod postgresql;
+pub(crate) mod postgresql;
 
 #[cfg(feature = "sqlite")]
 mod sqlite;
+
+#[cfg(any(feature = "sqlite", feature = "postgresql"))]
+pub mod diesel;
 
 #[cfg(feature = "mongo")]
 pub fn is_mongodb() -> bool {

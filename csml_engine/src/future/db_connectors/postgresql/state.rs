@@ -6,7 +6,8 @@ use crate::{
     AsyncPostgresqlClient, Client, EngineError,
 };
 
-use super::{models, schema::csml_states};
+use super::pagination::*;
+use crate::db_connectors::postgresql::{models, schema::csml_states};
 use chrono::NaiveDateTime;
 
 pub async fn delete_state_key(

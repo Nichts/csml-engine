@@ -1,6 +1,7 @@
 use crate::future::db_connectors::{conversations::*, memories::*, messages::*, state::*};
 use crate::future::utils::*;
 
+use crate::data::models::Direction;
 use crate::data::{AsyncConversationInfo, EngineError};
 use crate::interpreter_actions::models::{InterpreterReturn, SwitchBot};
 use csml_interpreter::data::context::ContextStepInfo;
@@ -231,7 +232,7 @@ pub async fn interpret_step(
         .collect();
 
     if !data.low_data {
-        add_messages_bulk(data, msgs, interaction_order, "SEND").await?;
+        add_messages_bulk(data, msgs, interaction_order, Direction::Send).await?;
     }
 
     add_memories(data, &memories).await?;

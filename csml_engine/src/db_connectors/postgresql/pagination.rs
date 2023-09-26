@@ -5,15 +5,15 @@ use diesel::query_dsl::methods::LoadQuery;
 use diesel::sql_types::BigInt;
 
 pub trait Paginate: Sized {
-    fn paginate(self, page: i64) -> Paginated<Self>;
+    fn paginate(self, page: u32) -> Paginated<Self>;
 }
 
 impl<T> Paginate for T {
-    fn paginate(self, page: i64) -> Paginated<Self> {
+    fn paginate(self, page: u32) -> Paginated<Self> {
         Paginated {
             query: self,
             per_page: DEFAULT_PER_PAGE,
-            offset: (page - 1) * DEFAULT_PER_PAGE,
+            offset: (page as i64 - 1) * DEFAULT_PER_PAGE,
         }
     }
 }
@@ -28,11 +28,11 @@ pub struct Paginated<T> {
 }
 
 impl<T> Paginated<T> {
-    pub fn per_page(self, per_page: i64) -> Self {
+    pub fn per_page(self, per_page: u32) -> Self {
         let old_page = self.offset / self.per_page + 1;
         Paginated {
-            per_page,
-            offset: (old_page - 1) * per_page,
+            per_page: per_page as i64,
+            offset: (old_page - 1) * per_page as i64,
             query: self.query,
         }
     }
@@ -40,7 +40,7 @@ impl<T> Paginated<T> {
     pub fn load_and_count_pages<'query, U>(
         self,
         conn: &mut PgConnection,
-    ) -> QueryResult<(Vec<U>, i64)>
+    ) -> QueryResult<(Vec<U>, u32)>
     where
         Self: LoadQuery<'query, PgConnection, (U, i64)>,
     {
@@ -48,7 +48,7 @@ impl<T> Paginated<T> {
         let results = self.load::<(U, i64)>(conn)?;
         let total = results.get(0).map(|x| x.1).unwrap_or(0);
         let records = results.into_iter().map(|x| x.0).collect();
-        let total_pages = (total as f64 / per_page as f64).ceil() as i64;
+        let total_pages = (total as f64 / per_page as f64).ceil() as u32;
         Ok((records, total_pages))
     }
 }

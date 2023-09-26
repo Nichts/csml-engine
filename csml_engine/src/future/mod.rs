@@ -32,7 +32,7 @@ use utils::*;
 
 use crate::data;
 use crate::data::filter::ClientMessageFilter;
-use crate::data::models::{BotOpt, CsmlRequest};
+use crate::data::models::{BotOpt, CsmlRequest, Direction, Message, Paginated};
 use crate::models::{BotVersion, BotVersionCreated, DbConversation};
 use chrono::prelude::*;
 use csml_interpreter::data::{csml_bot::CsmlBot, Hold, IndexInfo};
@@ -97,12 +97,12 @@ pub async fn start_conversation_db(
         (false, true) => {
             let msgs = vec![serde_json::json!({"content_type": "secure"})];
 
-            messages::add_messages_bulk(&mut data, msgs, 0, "RECEIVE").await?;
+            messages::add_messages_bulk(&mut data, msgs, 0, Direction::Receive).await?;
         }
         (false, false) => {
             let msgs = vec![request.payload];
 
-            messages::add_messages_bulk(&mut data, msgs, 0, "RECEIVE").await?;
+            messages::add_messages_bulk(&mut data, msgs, 0, Direction::Receive).await?;
         }
         (true, _) => {}
     }
@@ -223,23 +223,9 @@ pub async fn get_client_memory(
 
 #[deprecated]
 pub async fn get_client_messages(
-    client: &Client,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
-    from_date: Option<i64>,
-    to_date: Option<i64>,
-) -> Result<serde_json::Value, EngineError> {
+    filter: ClientMessageFilter<'_>,
+) -> Result<Paginated<Message>, EngineError> {
     let mut db = init_db().await?;
-    let limit = limit.map(|v| std::cmp::min(v, 25)).unwrap_or(25);
-
-    let filter = ClientMessageFilter {
-        client,
-        limit,
-        pagination_key,
-        from_date,
-        to_date,
-        conversation_id: None,
-    };
 
     get_client_messages_filtered(&mut db, filter).await
 }
@@ -247,7 +233,7 @@ pub async fn get_client_messages(
 pub async fn get_client_messages_filtered<'conn, 'a: 'conn>(
     db: &'a mut AsyncDatabase<'conn>,
     filter: ClientMessageFilter<'a>,
-) -> Result<serde_json::Value, EngineError> {
+) -> Result<Paginated<Message>, EngineError> {
     init_logger();
 
     messages::get_client_messages(db, filter).await
@@ -264,8 +250,8 @@ pub async fn get_conversation<'conn, 'a: 'conn>(
 
 pub async fn get_client_conversations(
     client: &Client,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
+    limit: Option<u32>,
+    pagination_key: Option<u32>,
 ) -> Result<serde_json::Value, EngineError> {
     let mut db = init_db().await?;
     init_logger();
@@ -369,8 +355,8 @@ pub async fn get_bot_by_version_id(
  */
 pub async fn get_bot_versions(
     bot_id: &str,
-    limit: Option<i64>,
-    last_key: Option<String>,
+    limit: Option<u32>,
+    last_key: Option<u32>,
 ) -> Result<serde_json::Value, EngineError> {
     let mut db = init_db().await?;
     init_logger();

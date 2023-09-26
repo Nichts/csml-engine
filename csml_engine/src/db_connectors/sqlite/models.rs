@@ -10,9 +10,11 @@ use uuid;
 
 use super::schema::*;
 use crate::data;
+use crate::db_connectors::diesel::Direction;
 use chrono::NaiveDateTime;
 use csml_interpreter::data::Client;
 use diesel::backend::Backend;
+
 
 #[derive(Identifiable, Queryable, PartialEq, Debug)]
 #[diesel(table_name = cmsl_bot_versions)]
@@ -129,7 +131,7 @@ pub struct Message {
 
     pub flow_id: String,
     pub step_id: String,
-    pub direction: String,
+    pub direction: Direction,
     pub payload: String,
     pub content_type: String,
 
@@ -142,6 +144,25 @@ pub struct Message {
     pub expires_at: Option<NaiveDateTime>,
 }
 
+impl From<Message> for data::models::Message {
+    fn from(message: Message) -> Self {
+        Self {
+            id: message.id.0,
+            conversation_id: message.conversation_id.0,
+            flow_id: message.flow_id,
+            step_id: message.step_id,
+            direction: message.direction.into(),
+            payload: message.payload,
+            content_type: message.content_type,
+            message_order: message.message_order as u32,
+            interaction_order: message.interaction_order as u32,
+            updated_at: message.updated_at.and_utc(),
+            created_at: message.created_at.and_utc(),
+            expires_at: message.expires_at.as_ref().map(NaiveDateTime::and_utc),
+        }
+    }
+}
+
 #[derive(Insertable, Queryable, Associations, PartialEq, Debug)]
 #[diesel(table_name = csml_messages, belongs_to(Conversation))]
 pub struct NewMessages<'a> {
@@ -150,7 +171,7 @@ pub struct NewMessages<'a> {
 
     pub flow_id: &'a str,
     pub step_id: &'a str,
-    pub direction: &'a str,
+    pub direction: Direction,
     pub payload: String,
     pub content_type: &'a str,
 

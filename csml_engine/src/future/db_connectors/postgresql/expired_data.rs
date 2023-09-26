@@ -3,7 +3,7 @@ use diesel_async::RunQueryDsl;
 
 use crate::{AsyncPostgresqlClient, EngineError};
 
-use super::schema::{csml_conversations, csml_memories, csml_states};
+use crate::db_connectors::postgresql::schema::{csml_conversations, csml_memories, csml_states};
 
 pub async fn delete_expired_data(db: &mut AsyncPostgresqlClient<'_>) -> Result<(), EngineError> {
     let date_now = chrono::Utc::now().naive_utc();

@@ -27,14 +27,11 @@ pub fn create_bot_version(
 
 pub fn get_bot_versions(
     bot_id: &str,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
+    limit: Option<u32>,
+    pagination_key: Option<u32>,
     db: &mut PostgresqlClient,
 ) -> Result<serde_json::Value, EngineError> {
-    let pagination_key = match pagination_key {
-        Some(paginate) => paginate.parse::<i64>().unwrap_or(1),
-        None => 1,
-    };
+    let pagination_key = pagination_key.unwrap_or(1);
 
     let mut query = cmsl_bot_versions::table
         .order_by(cmsl_bot_versions::updated_at.desc())

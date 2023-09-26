@@ -3,7 +3,8 @@ use diesel_async::RunQueryDsl;
 
 use crate::{AsyncPostgresqlClient, BotVersion, EngineError, SerializeCsmlBot};
 
-use super::{models, pagination::*, schema::cmsl_bot_versions};
+use super::pagination::*;
+use crate::db_connectors::postgresql::{models, schema::cmsl_bot_versions};
 
 use std::env;
 
@@ -29,14 +30,11 @@ pub async fn create_bot_version(
 
 pub async fn get_bot_versions(
     bot_id: &str,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
+    limit: Option<u32>,
+    pagination_key: Option<u32>,
     db: &mut AsyncPostgresqlClient<'_>,
 ) -> Result<serde_json::Value, EngineError> {
-    let pagination_key = match pagination_key {
-        Some(paginate) => paginate.parse::<i64>().unwrap_or(1),
-        None => 1,
-    };
+    let pagination_key = pagination_key.unwrap_or(1);
 
     let bot_id = bot_id.to_owned();
     let mut query = cmsl_bot_versions::table

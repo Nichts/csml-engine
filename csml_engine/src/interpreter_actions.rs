@@ -4,6 +4,7 @@ use crate::data::*;
 use crate::db_connectors::{conversations::*, memories::*, messages::*, state::*};
 use crate::utils::*;
 
+use crate::data::models::Direction;
 use csml_interpreter::data::context::ContextStepInfo;
 use csml_interpreter::{
     data::{
@@ -228,7 +229,7 @@ pub fn interpret_step(
         .collect();
 
     if !data.low_data {
-        add_messages_bulk(data, msgs, interaction_order, "SEND")?;
+        add_messages_bulk(data, msgs, interaction_order, Direction::Send)?;
     }
 
     add_memories(data, &memories)?;

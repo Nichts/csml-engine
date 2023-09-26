@@ -1,5 +1,5 @@
 use crate::data::EngineError;
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Utc};
 use csml_interpreter::data::{Client, CsmlBot, MultiBot};
 use serde_derive::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -116,3 +116,60 @@ pub struct Conversation {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expires_at: Option<DateTime<Utc>>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum Direction {
+    Send,
+    Receive,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Message {
+    pub id: Uuid,
+
+    pub conversation_id: Uuid,
+    pub flow_id: String,
+    pub step_id: String,
+    pub message_order: u32,
+    pub interaction_order: u32,
+
+    pub direction: Direction,
+    pub content_type: String,
+    pub payload: String,
+
+    pub updated_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub expires_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PaginationData {
+    pub page: u32,
+    pub total_pages: u32,
+    pub per_page: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Paginated<T>
+where
+    T: serde::Serialize,
+{
+    pub data: Vec<T>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pagination: Option<PaginationData>,
+}
+
+// macro_rules! paginated {
+//     ($name:ident, $field:ident, $data:ty) => {
+//         #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+//         pub struct $name {
+//             pub $field: $data,
+//             #[serde(skip_serializing_if = "Option::is_none")]
+//             pub pagination_key: Option<String>,
+//         }
+//     }
+// }
+//
+// paginated!(PaginatedMessages, messages, Vec<Message>);

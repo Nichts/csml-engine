@@ -5,6 +5,7 @@ mod tests {
 
     use crate::data::filter::ClientMessageFilter;
     use crate::{db_connectors::*, init_db, make_migrations, Client, Context, ConversationInfo};
+    use crate::data::models::Direction;
 
     fn get_client() -> Client {
         Client {
@@ -121,23 +122,20 @@ mod tests {
 
         let mut data = get_conversation_info(vec![], c_id, db);
 
-        messages::add_messages_bulk(&mut data, msgs, 0, "SEND").unwrap();
+        messages::add_messages_bulk(&mut data, msgs, 0, Direction::Send).unwrap();
 
         let filter = ClientMessageFilter::builder().client(&client);
         let filter = filter.limit(1);
 
         let response = messages::get_client_messages(&mut data.db, filter.build()).unwrap();
 
-        let received_msgs: Vec<serde_json::Value> =
-            serde_json::from_value(response["messages"].clone()).unwrap();
+        let received_msgs = response.data;
 
         assert_eq!(1, received_msgs.len());
 
         assert_eq!(
-            "4",
-            received_msgs[0]["payload"]["content"]["text"]
-                .as_str()
-                .unwrap()
+            "{\"content\": {\"text\": 4}}",
+            received_msgs[0].payload
         );
 
         user::delete_client(&client, &mut data.db).unwrap();
@@ -147,8 +145,7 @@ mod tests {
 
         let response = messages::get_client_messages(&mut data.db, filter.build()).unwrap();
 
-        let received_msgs: Vec<serde_json::Value> =
-            serde_json::from_value(response["messages"].clone()).unwrap();
+        let received_msgs = response.data;
         assert_eq!(0, received_msgs.len());
     }
 

@@ -6,7 +6,8 @@ use crate::{data, AsyncPostgresqlClient, Client, EngineError};
 use chrono::NaiveDateTime;
 use uuid::Uuid;
 
-use super::{models, pagination::*, schema::csml_conversations};
+use super::pagination::*;
+use crate::db_connectors::postgresql::{models, schema::csml_conversations};
 
 pub async fn create_conversation(
     flow_id: &str,
@@ -175,13 +176,10 @@ pub async fn get_conversation(
 pub async fn get_client_conversations(
     client: &Client,
     db: &mut AsyncPostgresqlClient<'_>,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
+    limit: Option<u32>,
+    pagination_key: Option<u32>,
 ) -> Result<serde_json::Value, EngineError> {
-    let pagination_key = match pagination_key {
-        Some(paginate) => paginate.parse::<i64>().unwrap_or(1),
-        None => 1,
-    };
+    let pagination_key = pagination_key.unwrap_or(1);
 
     let client = client.to_owned();
     let mut query = csml_conversations::table

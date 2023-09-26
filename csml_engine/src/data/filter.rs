@@ -6,9 +6,9 @@ use uuid::Uuid;
 pub struct ClientMessageFilter<'a> {
     pub client: &'a Client,
     #[builder(default = 25)]
-    pub limit: i64,
+    pub limit: u32,
     #[builder(setter(into), default)]
-    pub pagination_key: Option<String>,
+    pub pagination_key: Option<u32>,
     #[builder(default)]
     pub from_date: Option<i64>,
     #[builder(default)]

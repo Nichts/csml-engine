@@ -7,7 +7,7 @@ use crate::{
     AsyncConversationInfo, AsyncPostgresqlClient, Client, EngineError, Memory,
 };
 
-use super::{models, schema::csml_memories};
+use crate::db_connectors::postgresql::{models, schema::csml_memories};
 
 use chrono::NaiveDateTime;
 use std::collections::HashMap;

@@ -221,8 +221,8 @@ pub async fn get_conversation(
 pub async fn get_client_conversations(
     client: &Client,
     db: &mut AsyncDatabase<'_>,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
+    limit: Option<u32>,
+    pagination_key: Option<u32>,
 ) -> Result<serde_json::Value, EngineError> {
     csml_logger(
         CsmlLog::new(

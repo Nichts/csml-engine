@@ -110,8 +110,8 @@ pub async fn get_by_version_id(
 
 pub async fn get_bot_versions(
     bot_id: &str,
-    limit: Option<i64>,
-    pagination_key: Option<String>,
+    limit: Option<u32>,
+    pagination_key: Option<u32>,
     db: &mut AsyncDatabase<'_>,
 ) -> Result<serde_json::Value, EngineError> {
     csml_logger(

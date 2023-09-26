@@ -6,9 +6,6 @@ pub mod state;
 
 pub mod pagination;
 
-pub mod models;
-pub mod schema;
-
 pub mod expired_data;
 
 use crate::{AsyncDatabase, AsyncPostgresqlClient, EngineError};

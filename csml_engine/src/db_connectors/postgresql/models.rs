@@ -1,5 +1,8 @@
 use super::schema::*;
+use crate::data;
+use crate::db_connectors::diesel::Direction;
 use chrono::NaiveDateTime;
+use csml_interpreter::data::Client;
 use diesel::{Associations, Identifiable, Insertable, Queryable};
 use uuid::Uuid;
 
@@ -43,6 +46,26 @@ pub struct Conversation {
     pub updated_at: NaiveDateTime,
     pub created_at: NaiveDateTime,
     pub expires_at: Option<NaiveDateTime>,
+}
+
+impl From<Conversation> for data::models::Conversation {
+    fn from(value: Conversation) -> Self {
+        Self {
+            id: value.id,
+            client: Client {
+                bot_id: value.bot_id,
+                channel_id: value.channel_id,
+                user_id: value.user_id,
+            },
+            flow_id: value.flow_id,
+            step_id: value.step_id,
+            status: value.status,
+            last_interaction_at: value.last_interaction_at.and_utc(),
+            updated_at: value.updated_at.and_utc(),
+            created_at: value.created_at.and_utc(),
+            expires_at: value.expires_at.as_ref().map(NaiveDateTime::and_utc),
+        }
+    }
 }
 
 #[derive(Insertable, Queryable, Associations, PartialEq, Debug)]
@@ -98,7 +121,7 @@ pub struct Message {
 
     pub flow_id: String,
     pub step_id: String,
-    pub direction: String,
+    pub direction: Direction,
     pub payload: String,
     pub content_type: String,
 
@@ -111,6 +134,25 @@ pub struct Message {
     pub expires_at: Option<NaiveDateTime>,
 }
 
+impl From<Message> for data::models::Message {
+    fn from(message: Message) -> Self {
+        Self {
+            id: message.id,
+            conversation_id: message.conversation_id,
+            flow_id: message.flow_id,
+            step_id: message.step_id,
+            direction: message.direction.into(),
+            payload: message.payload,
+            content_type: message.content_type,
+            message_order: message.message_order as u32,
+            interaction_order: message.interaction_order as u32,
+            updated_at: message.updated_at.and_utc(),
+            created_at: message.created_at.and_utc(),
+            expires_at: message.expires_at.as_ref().map(NaiveDateTime::and_utc),
+        }
+    }
+}
+
 #[derive(Insertable, Queryable, Associations, PartialEq, Debug)]
 #[diesel(table_name = csml_messages, belongs_to(Conversation))]
 pub struct NewMessages<'a> {
@@ -119,7 +161,7 @@ pub struct NewMessages<'a> {
 
     pub flow_id: &'a str,
     pub step_id: &'a str,
-    pub direction: &'a str,
+    pub direction: Direction,
     pub payload: String,
     pub content_type: &'a str,
 

@@ -1,7 +1,8 @@
-use csml_engine::get_client_messages;
+use csml_engine::{get_client_messages};
 use csml_interpreter::data::Client;
 
 use chrono::prelude::*;
+use csml_engine::data::filter::ClientMessageFilter;
 
 fn main() {
     let client = Client {
@@ -10,12 +11,11 @@ fn main() {
         channel_id: "some-channel-id".to_owned(),
     };
 
-    let messages = get_client_messages(&client, None, None, None, None).unwrap();
+    let filter = ClientMessageFilter::builder().client(&client).build();
 
-    println!(
-        "msg nbr => {}",
-        messages["messages"].as_array().unwrap().len()
-    );
+    let messages = get_client_messages(filter).unwrap();
+
+    println!("msg nbr => {}", messages.data.len());
 
     // DateTime::format_with_items(&self, items)
     // 2022-04-08T13:52:29.982Z
@@ -23,13 +23,17 @@ fn main() {
                                                                        // dt.timestamp_millis()
 
     // let messages = get_client_messages(&client, None, None, None, None).unwrap();
-    let messages =
-        get_client_messages(&client, Some(1), None, Some(start.timestamp()), None).unwrap();
+    let filter = ClientMessageFilter::builder()
+        .client(&client)
+        .limit(1)
+        .from_date(Some(start.timestamp()))
+        .build();
+    let messages = get_client_messages(filter).unwrap();
 
     println!("=> {:#?}", messages);
 
     println!(
         "msg nbr => {}",
-        messages["messages"].as_array().unwrap().len()
+        messages.data.len()
     );
 }

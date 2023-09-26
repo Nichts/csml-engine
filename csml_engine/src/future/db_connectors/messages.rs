@@ -2,6 +2,7 @@
 use crate::future::db_connectors::{is_postgresql, postgresql_connector};
 
 use crate::data::filter::ClientMessageFilter;
+use crate::data::models::{Direction, Message, Paginated};
 use crate::error_messages::ERROR_DB_SETUP;
 use crate::future::db_connectors::utils::*;
 use crate::{AsyncConversationInfo, AsyncDatabase, EngineError};
@@ -11,7 +12,7 @@ pub async fn add_messages_bulk(
     data: &mut AsyncConversationInfo<'_>,
     msgs: Vec<serde_json::Value>,
     interaction_order: i32,
-    direction: &str,
+    direction: Direction,
 ) -> Result<(), EngineError> {
     csml_logger(
         CsmlLog::new(
@@ -40,7 +41,7 @@ pub async fn add_messages_bulk(
             data,
             &msgs,
             interaction_order,
-            direction,
+            direction.into(),
             expires_at,
         )
         .await;
@@ -52,7 +53,7 @@ pub async fn add_messages_bulk(
 pub async fn get_client_messages<'conn, 'a: 'conn, 'b: 'conn>(
     db: &'a mut AsyncDatabase<'conn>,
     filter: ClientMessageFilter<'b>,
-) -> Result<serde_json::Value, EngineError> {
+) -> Result<Paginated<Message>, EngineError> {
     csml_logger(
         CsmlLog::new(None, None, None, "db call get messages".to_string()),
         LogLvl::Info,
