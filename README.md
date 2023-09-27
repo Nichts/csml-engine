@@ -1,4 +1,7 @@
-
+<h1 style="font-size: 50px">
+    <p>Forked version of CSML for a research project. No longer publicly maintained (vendored into the project repository).</p>
+    <p>If you want the current version contact me.</p>
+</h1>
 <h1 align="center">
   <br>
   <a href="https://www.csml.dev"><img src="./images/csml-horizontal-whitebg-v3.png?raw=true" alt="CSML" width="200"></a>
