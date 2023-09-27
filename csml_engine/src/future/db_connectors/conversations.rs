@@ -6,8 +6,8 @@ use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
 
 use crate::error_messages::ERROR_DB_SETUP;
 use crate::future::db_connectors::{state, utils::*};
-use crate::models::DbConversation;
 use crate::{data, AsyncConversationInfo, AsyncDatabase, Client, EngineError};
+use crate::data::models::Conversation;
 
 pub async fn create_conversation(
     flow_id: &str,
@@ -15,7 +15,7 @@ pub async fn create_conversation(
     client: &Client,
     ttl: Option<chrono::Duration>,
     db: &mut AsyncDatabase<'_>,
-) -> Result<String, EngineError> {
+) -> Result<Uuid, EngineError> {
     csml_logger(
         CsmlLog::new(
             None,
@@ -55,7 +55,7 @@ pub async fn create_conversation(
 }
 
 pub async fn close_conversation(
-    id: &str,
+    id: Uuid,
     client: &Client,
     db: &mut AsyncDatabase<'_>,
 ) -> Result<(), EngineError> {
@@ -126,7 +126,7 @@ pub async fn close_all_conversations(
 pub async fn get_latest_open(
     client: &Client,
     db: &mut AsyncDatabase<'_>,
-) -> Result<Option<DbConversation>, EngineError> {
+) -> Result<Option<Conversation>, EngineError> {
     csml_logger(
         CsmlLog::new(
             None,
@@ -189,7 +189,7 @@ pub async fn update_conversation(
     if is_postgresql() {
         let db = postgresql_connector::get_db(&mut data.db)?;
         return postgresql_connector::conversations::update_conversation(
-            &data.conversation_id,
+            data.conversation_id,
             flow_id,
             step_id,
             db,

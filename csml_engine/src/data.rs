@@ -16,6 +16,7 @@ use diesel::r2d2::{ConnectionManager, PooledConnection, R2D2Connection};
 use serde::de::StdError;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use uuid::Uuid;
 
 pub const DEBUG: &str = "DEBUG";
 pub const DISABLE_SSL_VERIFY: &str = "DISABLE_SSL_VERIFY";
@@ -351,7 +352,7 @@ impl AsyncPostgresqlClient<'static> {
 
 pub struct ConversationInfo<'a> {
     pub request_id: String,
-    pub conversation_id: String,
+    pub conversation_id: Uuid,
     pub callback_url: Option<String>,
     pub client: Client,
     pub context: Context,
@@ -365,7 +366,7 @@ pub struct ConversationInfo<'a> {
 #[cfg(feature = "async")]
 pub struct AsyncConversationInfo<'a> {
     pub request_id: String,
-    pub conversation_id: String,
+    pub conversation_id: Uuid,
     pub callback_url: Option<String>,
     pub client: Client,
     pub context: Context,

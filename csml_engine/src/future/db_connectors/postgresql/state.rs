@@ -6,7 +6,6 @@ use crate::{
     AsyncPostgresqlClient, Client, EngineError,
 };
 
-use super::pagination::*;
 use crate::db_connectors::postgresql::{models, schema::csml_states};
 use chrono::NaiveDateTime;
 

@@ -4,7 +4,7 @@ use std::convert::TryInto;
 
 use crate::{
     data,
-    encrypt::{decrypt_data, encrypt_data},
+    encrypt::{encrypt_data},
     future::db_connectors::postgresql::get_db,
     AsyncConversationInfo, AsyncPostgresqlClient, Client, EngineError,
 };
@@ -35,7 +35,7 @@ pub async fn add_messages_bulk(
 
     let mut new_messages = vec![];
     for (message_order, message) in msgs.iter().enumerate() {
-        let conversation_id = uuid::Uuid::parse_str(&data.conversation_id).unwrap();
+        let conversation_id = data.conversation_id;
 
         let msg = models::NewMessages {
             id: uuid::Uuid::new_v4(),

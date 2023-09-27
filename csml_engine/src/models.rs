@@ -2,19 +2,6 @@ use csml_interpreter::data::{Client, CsmlBot};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct DbConversation {
-    pub id: String,
-    pub client: Client,
-    pub flow_id: String,
-    pub step_id: String,
-    // pub metadata: serde_json::Value,
-    pub status: String,
-    pub last_interaction_at: String,
-    pub updated_at: String,
-    pub created_at: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 pub struct DbMemory {
     pub id: String,
     pub client: Client,

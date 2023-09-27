@@ -42,14 +42,14 @@ use interpreter_actions::interpret_step;
 use utils::*;
 
 use crate::data::filter::ClientMessageFilter;
-use crate::data::models::{Direction, Message, Paginated};
+use crate::data::models::{Conversation, Direction, Message, Paginated};
 use chrono::prelude::*;
 use csml_interpreter::data::{
     csml_bot::CsmlBot, csml_flow::CsmlFlow, Context, Hold, IndexInfo, Memory,
 };
 use data::models::{BotOpt, CsmlRequest};
 use interpreter_actions::models::SwitchBot;
-use models::{BotVersion, BotVersionCreated, DbConversation};
+use models::{BotVersion, BotVersionCreated};
 use std::{collections::HashMap, env};
 use uuid::Uuid;
 
@@ -202,7 +202,7 @@ fn check_switch_bot(
  * Return the latest conversation that is still open for a given user
  * (there should not be more than one), or None if there isn't any.
  */
-pub fn get_open_conversation(client: &Client) -> Result<Option<DbConversation>, EngineError> {
+pub fn get_open_conversation(client: &Client) -> Result<Option<Conversation>, EngineError> {
     let mut db = init_db()?;
     init_logger();
 

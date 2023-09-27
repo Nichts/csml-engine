@@ -12,8 +12,8 @@ use csml_interpreter::data::csml_logs::{csml_logger, CsmlLog, LogLvl};
 
 use crate::db_connectors::{state, utils::*};
 use crate::error_messages::ERROR_DB_SETUP;
-use crate::models::DbConversation;
 use crate::{data, Client, ConversationInfo, Database, EngineError};
+use crate::data::models::Conversation;
 
 pub fn create_conversation(
     flow_id: &str,
@@ -21,7 +21,7 @@ pub fn create_conversation(
     client: &Client,
     ttl: Option<chrono::Duration>,
     db: &mut Database,
-) -> Result<String, EngineError> {
+) -> Result<Uuid, EngineError> {
     csml_logger(
         CsmlLog::new(
             None,
@@ -87,7 +87,7 @@ pub fn create_conversation(
     Err(EngineError::Manager(ERROR_DB_SETUP.to_owned()))
 }
 
-pub fn close_conversation(id: &str, client: &Client, db: &mut Database) -> Result<(), EngineError> {
+pub fn close_conversation(id: Uuid, client: &Client, db: &mut Database) -> Result<(), EngineError> {
     csml_logger(
         CsmlLog::new(
             None,
@@ -187,7 +187,7 @@ pub fn close_all_conversations(client: &Client, db: &mut Database) -> Result<(),
 pub fn get_latest_open(
     client: &Client,
     db: &mut Database,
-) -> Result<Option<DbConversation>, EngineError> {
+) -> Result<Option<Conversation>, EngineError> {
     csml_logger(
         CsmlLog::new(
             None,
@@ -292,7 +292,7 @@ pub fn update_conversation(
     if is_postgresql() {
         let db = postgresql_connector::get_db(&mut data.db)?;
         return postgresql_connector::conversations::update_conversation(
-            &data.conversation_id,
+            data.conversation_id,
             flow_id,
             step_id,
             db,
@@ -303,7 +303,7 @@ pub fn update_conversation(
     if is_sqlite() {
         let db = sqlite_connector::get_db(&mut data.db)?;
         return sqlite_connector::conversations::update_conversation(
-            &data.conversation_id,
+            data.conversation_id,
             flow_id,
             step_id,
             db,

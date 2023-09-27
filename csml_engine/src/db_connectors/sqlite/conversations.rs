@@ -1,7 +1,6 @@
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 
 use crate::data::models::{Conversation, PaginationData};
-use crate::models::DbConversation;
 use crate::{data, Client, EngineError, SqliteClient};
 use chrono::NaiveDateTime;
 use uuid::Uuid;
@@ -14,7 +13,7 @@ pub fn create_conversation(
     client: &Client,
     expires_at: Option<NaiveDateTime>,
     db: &mut SqliteClient,
-) -> Result<String, EngineError> {
+) -> Result<Uuid, EngineError> {
     let id = models::UUID::new_v4();
 
     let new_conversation = models::NewConversation {
@@ -32,16 +31,16 @@ pub fn create_conversation(
         .values(&new_conversation)
         .execute(db.client.as_mut())?;
 
-    Ok(id.to_string())
+    Ok(id.0)
 }
 
 pub fn close_conversation(
-    id: &str,
+    id: Uuid,
     _client: &Client,
     status: &str,
     db: &mut SqliteClient,
 ) -> Result<(), EngineError> {
-    let id = models::UUID::parse_str(id).unwrap();
+    let id = models::UUID(id);
 
     diesel::update(csml_conversations::table.filter(csml_conversations::id.eq(id)))
         .set(csml_conversations::status.eq(status))
@@ -66,7 +65,7 @@ pub fn close_all_conversations(client: &Client, db: &mut SqliteClient) -> Result
 pub fn get_latest_open(
     client: &Client,
     db: &mut SqliteClient,
-) -> Result<Option<DbConversation>, EngineError> {
+) -> Result<Option<Conversation>, EngineError> {
     let result: Result<models::Conversation, diesel::result::Error> = csml_conversations::table
         .filter(csml_conversations::bot_id.eq(&client.bot_id))
         .filter(csml_conversations::channel_id.eq(&client.channel_id))
@@ -78,23 +77,7 @@ pub fn get_latest_open(
 
     match result {
         Ok(conv) => {
-            let conversation = DbConversation {
-                id: conv.id.to_string(),
-                client: Client {
-                    bot_id: conv.bot_id,
-                    channel_id: conv.channel_id,
-                    user_id: conv.user_id,
-                },
-                flow_id: conv.flow_id,
-                step_id: conv.step_id,
-                status: conv.status,
-                last_interaction_at: conv
-                    .last_interaction_at
-                    .format("%Y-%m-%dT%H:%M:%S%.fZ")
-                    .to_string(),
-                updated_at: conv.updated_at.format("%Y-%m-%dT%H:%M:%S%.fZ").to_string(),
-                created_at: conv.created_at.format("%Y-%m-%dT%H:%M:%S%.fZ").to_string(),
-            };
+            let conversation = conv.into();
 
             Ok(Some(conversation))
         }
@@ -103,12 +86,12 @@ pub fn get_latest_open(
 }
 
 pub fn update_conversation(
-    conversation_id: &str,
+    conversation_id: Uuid,
     flow_id: Option<String>,
     step_id: Option<String>,
     db: &mut SqliteClient,
 ) -> Result<(), EngineError> {
-    let id = models::UUID::parse_str(conversation_id).unwrap();
+    let id = models::UUID(conversation_id);
 
     match (flow_id, step_id) {
         (Some(flow_id), Some(step_id)) => {

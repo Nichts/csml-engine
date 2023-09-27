@@ -22,6 +22,7 @@ use csml_interpreter::{
 use crate::data::models::{BotOpt, CsmlRequest};
 use base64::Engine;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 /**
  * Initialize a new ConversationInfo data, usually upon new chat request.
@@ -197,7 +198,7 @@ fn get_or_create_conversation<'a>(
     client: &Client,
     ttl: Option<chrono::Duration>,
     db: &mut Database,
-) -> Result<String, EngineError> {
+) -> Result<Uuid, EngineError> {
     match get_latest_open(client, db)? {
         Some(conversation) => {
             match flow_found {
@@ -210,7 +211,7 @@ fn get_or_create_conversation<'a>(
                         Ok(flow) => flow,
                         Err(..) => {
                             // if flow id exist in db but not in bot close conversation
-                            close_conversation(&conversation.id, client, db)?;
+                            close_conversation(conversation.id, client, db)?;
                             // start new conversation at default flow
                             return create_new_conversation(
                                 context, bot, flow_found, client, ttl, db,
@@ -239,7 +240,7 @@ fn create_new_conversation<'a>(
     client: &Client,
     ttl: Option<chrono::Duration>,
     db: &mut Database,
-) -> Result<String, EngineError> {
+) -> Result<Uuid, EngineError> {
     let (flow, step) = match flow_found {
         Some((flow, step)) => (flow, step),
         None => (get_default_flow(bot)?, "start".to_owned()),

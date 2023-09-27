@@ -32,7 +32,7 @@ pub fn add_messages_bulk(
 
     let mut new_messages = vec![];
     for (message_order, message) in msgs.iter().enumerate() {
-        let conversation_id = models::UUID::parse_str(&data.conversation_id).unwrap();
+        let conversation_id = models::UUID(data.conversation_id);
 
         let msg = models::NewMessages {
             id: models::UUID::new_v4(),

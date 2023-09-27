@@ -2,6 +2,7 @@
 mod tests {
     use csml_interpreter::data::{context::ContextStepInfo, CsmlBot, CsmlFlow, Message};
     use std::collections::HashMap;
+    use uuid::Uuid;
 
     use crate::data::filter::ClientMessageFilter;
     use crate::data::models::Direction;
@@ -54,7 +55,7 @@ mod tests {
 
     fn get_conversation_info(
         messages: Vec<Message>,
-        conversation_id: String,
+        conversation_id: Uuid,
         db: AsyncDatabase,
     ) -> AsyncConversationInfo {
         AsyncConversationInfo {
@@ -165,8 +166,7 @@ mod tests {
             .await
             .unwrap();
 
-        let received_msgs: Vec<serde_json::Value> =
-            serde_json::from_value(response["messages"].clone()).unwrap();
+        let received_msgs = response.data;
         assert_eq!(0, received_msgs.len());
     }
 

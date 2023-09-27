@@ -219,7 +219,7 @@ pub async fn interpret_step(
                 send_msg_to_callback_url(data, vec![err_msg.clone()], interaction_order, true)
                     .await;
                 data.messages.push(err_msg);
-                close_conversation(&data.conversation_id, &data.client, &mut data.db).await?;
+                close_conversation(data.conversation_id, &data.client, &mut data.db).await?;
             }
         }
     }
@@ -389,7 +389,7 @@ async fn manage_switch_bot<'a>(
         LogLvl::Info,
     );
 
-    close_conversation(&data.conversation_id, &data.client, &mut data.db).await?;
+    close_conversation(data.conversation_id, &data.client, &mut data.db).await?;
 
     let previous_bot: Value = serde_json::json!({
         "bot": data.client.bot_id,
@@ -554,7 +554,7 @@ async fn goto_step<'a>(
 
         // send end of conversation
         send_msg_to_callback_url(data, vec![], *interaction_order, *conversation_end).await;
-        close_conversation(&data.conversation_id, &data.client, &mut data.db).await?;
+        close_conversation(data.conversation_id, &data.client, &mut data.db).await?;
 
         // break interpret_step loop
         return Ok(*conversation_end);

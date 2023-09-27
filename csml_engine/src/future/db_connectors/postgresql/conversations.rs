@@ -1,8 +1,7 @@
 use diesel::{ExpressionMethods, QueryDsl};
 use diesel_async::RunQueryDsl;
 
-use crate::data::models::PaginationData;
-use crate::models::DbConversation;
+use crate::data::models::{Conversation, PaginationData};
 use crate::{data, AsyncPostgresqlClient, Client, EngineError};
 use chrono::NaiveDateTime;
 use uuid::Uuid;
@@ -16,7 +15,7 @@ pub async fn create_conversation(
     client: &Client,
     expires_at: Option<NaiveDateTime>,
     db: &mut AsyncPostgresqlClient<'_>,
-) -> Result<String, EngineError> {
+) -> Result<Uuid, EngineError> {
     let new_conversation = models::NewConversation {
         id: uuid::Uuid::new_v4(),
         bot_id: &client.bot_id,
@@ -33,17 +32,15 @@ pub async fn create_conversation(
         .get_result(db.client.as_mut())
         .await?;
 
-    Ok(conversation.id.to_string())
+    Ok(conversation.id)
 }
 
 pub async fn close_conversation(
-    id: &str,
+    id: Uuid,
     _client: &Client,
     status: &str,
     db: &mut AsyncPostgresqlClient<'_>,
 ) -> Result<(), EngineError> {
-    let id: uuid::Uuid = uuid::Uuid::parse_str(id).unwrap();
-
     diesel::update(csml_conversations::table.filter(csml_conversations::id.eq(id)))
         .set(csml_conversations::status.eq(status))
         .execute(db.client.as_mut())
@@ -72,7 +69,7 @@ pub async fn close_all_conversations(
 pub async fn get_latest_open(
     client: &Client,
     db: &mut AsyncPostgresqlClient<'_>,
-) -> Result<Option<DbConversation>, EngineError> {
+) -> Result<Option<Conversation>, EngineError> {
     let result: Result<models::Conversation, diesel::result::Error> = csml_conversations::table
         .filter(csml_conversations::bot_id.eq(&client.bot_id))
         .filter(csml_conversations::channel_id.eq(&client.channel_id))
@@ -85,23 +82,7 @@ pub async fn get_latest_open(
 
     match result {
         Ok(conv) => {
-            let conversation = DbConversation {
-                id: conv.id.to_string(),
-                client: Client {
-                    bot_id: conv.bot_id,
-                    channel_id: conv.channel_id,
-                    user_id: conv.user_id,
-                },
-                flow_id: conv.flow_id,
-                step_id: conv.step_id,
-                status: conv.status,
-                last_interaction_at: conv
-                    .last_interaction_at
-                    .format("%Y-%m-%dT%H:%M:%S%.fZ")
-                    .to_string(),
-                updated_at: conv.updated_at.format("%Y-%m-%dT%H:%M:%S%.fZ").to_string(),
-                created_at: conv.created_at.format("%Y-%m-%dT%H:%M:%S%.fZ").to_string(),
-            };
+            let conversation = conv.into();
 
             Ok(Some(conversation))
         }
@@ -110,16 +91,15 @@ pub async fn get_latest_open(
 }
 
 pub async fn update_conversation(
-    conversation_id: &str,
+    conversation_id: Uuid,
     flow_id: Option<String>,
     step_id: Option<String>,
     db: &mut AsyncPostgresqlClient<'_>,
 ) -> Result<(), EngineError> {
-    let id: uuid::Uuid = uuid::Uuid::parse_str(conversation_id).unwrap();
 
     match (flow_id, step_id) {
         (Some(flow_id), Some(step_id)) => {
-            diesel::update(csml_conversations::table.filter(csml_conversations::id.eq(&id)))
+            diesel::update(csml_conversations::table.filter(csml_conversations::id.eq(conversation_id)))
                 .set((
                     csml_conversations::flow_id.eq(flow_id.as_str()),
                     csml_conversations::step_id.eq(step_id.as_str()),
@@ -128,13 +108,13 @@ pub async fn update_conversation(
                 .await?;
         }
         (Some(flow_id), _) => {
-            diesel::update(csml_conversations::table.filter(csml_conversations::id.eq(&id)))
+            diesel::update(csml_conversations::table.filter(csml_conversations::id.eq(conversation_id)))
                 .set(csml_conversations::flow_id.eq(flow_id.as_str()))
                 .get_result::<models::Conversation>(db.client.as_mut())
                 .await?;
         }
         (_, Some(step_id)) => {
-            diesel::update(csml_conversations::table.filter(csml_conversations::id.eq(&id)))
+            diesel::update(csml_conversations::table.filter(csml_conversations::id.eq(conversation_id)))
                 .set(csml_conversations::step_id.eq(step_id.as_str()))
                 .get_result::<models::Conversation>(db.client.as_mut())
                 .await?;

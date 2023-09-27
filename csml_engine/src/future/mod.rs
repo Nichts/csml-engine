@@ -33,7 +33,7 @@ use utils::*;
 use crate::data;
 use crate::data::filter::ClientMessageFilter;
 use crate::data::models::{BotOpt, Conversation, CsmlRequest, Direction, Message, Paginated};
-use crate::models::{BotVersion, BotVersionCreated, DbConversation};
+use crate::models::{BotVersion, BotVersionCreated};
 use chrono::prelude::*;
 use csml_interpreter::data::{csml_bot::CsmlBot, Hold, IndexInfo};
 use futures::future::{BoxFuture, FutureExt};
@@ -197,7 +197,7 @@ fn check_switch_bot<'a>(
  * Return the latest conversation that is still open for a given user
  * (there should not be more than one), or None if there isn't any.
  */
-pub async fn get_open_conversation(client: &Client) -> Result<Option<DbConversation>, EngineError> {
+pub async fn get_open_conversation(client: &Client) -> Result<Option<Conversation>, EngineError> {
     let mut db = init_db().await?;
     init_logger();
 
